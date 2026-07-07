@@ -1,0 +1,591 @@
+﻿// Created by Microsoft (R) C/C++ Compiler Version 14.16.27054.0 (222ea5eb).
+//
+// c:\users\22113\desktop\files\qtholemeasure\lpvdisplay.tli
+//
+// Wrapper implementations for type library F:\\Source\\StoneWall\\publish\\bin\\x64\\lpvDisplay.dll
+// compiler-generated file created 07/02/26 at 14:00:17 - DO NOT EDIT!
+
+#pragma once
+
+//
+// dispinterface ILDisplayEvents wrapper method implementations
+//
+
+inline HRESULT ILDisplayEvents::Refreshed ( ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8101, DISPATCH_METHOD, VT_ERROR, (void*)&_result, NULL);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::MouseDown ( enum LPVMouseButton buttons, enum LPVKeyboardModifiers modifiers, int x, int y ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8102, DISPATCH_METHOD, VT_ERROR, (void*)&_result, 
+        L"\x0003\x0003\x0003\x0003", buttons, modifiers, x, y);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::MouseUp ( enum LPVMouseButton buttons, enum LPVKeyboardModifiers modifiers, int x, int y ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8103, DISPATCH_METHOD, VT_ERROR, (void*)&_result, 
+        L"\x0003\x0003\x0003\x0003", buttons, modifiers, x, y);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::MouseDoubleClick ( enum LPVMouseButton buttons, enum LPVKeyboardModifiers modifiers, int x, int y ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8104, DISPATCH_METHOD, VT_ERROR, (void*)&_result, 
+        L"\x0003\x0003\x0003\x0003", buttons, modifiers, x, y);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::MouseMove ( enum LPVMouseButton buttons, enum LPVKeyboardModifiers modifiers, int x, int y ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8105, DISPATCH_METHOD, VT_ERROR, (void*)&_result, 
+        L"\x0003\x0003\x0003\x0003", buttons, modifiers, x, y);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::MouseWheel ( enum LPVMouseButton buttons, enum LPVKeyboardModifiers modifiers, int x, int y, int delta ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8106, DISPATCH_METHOD, VT_ERROR, (void*)&_result, 
+        L"\x0003\x0003\x0003\x0003\x0003", buttons, modifiers, x, y, delta);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::KeyDown ( int keyCode, enum LPVKeyboardModifiers modifiers ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8107, DISPATCH_METHOD, VT_ERROR, (void*)&_result, 
+        L"\x0003\x0003", keyCode, modifiers);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::KeyUp ( int keyCode, enum LPVKeyboardModifiers modifiers ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8108, DISPATCH_METHOD, VT_ERROR, (void*)&_result, 
+        L"\x0003\x0003", keyCode, modifiers);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::RegionDragging ( int regionId ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8120, DISPATCH_METHOD, VT_ERROR, (void*)&_result, 
+        L"\x0003", regionId);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::RegionDragFinished ( int regionId ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8121, DISPATCH_METHOD, VT_ERROR, (void*)&_result, 
+        L"\x0003", regionId);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::RegionRemoving ( int regionId ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8122, DISPATCH_METHOD, VT_ERROR, (void*)&_result, 
+        L"\x0003", regionId);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::RegionRemovingAll ( ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8123, DISPATCH_METHOD, VT_ERROR, (void*)&_result, NULL);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::ObjectDragging ( int objectId ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8124, DISPATCH_METHOD, VT_ERROR, (void*)&_result, 
+        L"\x0003", objectId);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::ObjectDragFinished ( int objectId ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8125, DISPATCH_METHOD, VT_ERROR, (void*)&_result, 
+        L"\x0003", objectId);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::ObjectRemoving ( int objectId ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8126, DISPATCH_METHOD, VT_ERROR, (void*)&_result, 
+        L"\x0003", objectId);
+    return _result;
+}
+
+inline HRESULT ILDisplayEvents::ObjectRemovingAll ( ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x8127, DISPATCH_METHOD, VT_ERROR, (void*)&_result, NULL);
+    return _result;
+}
+
+//
+// interface ILDisplayCommon wrapper method implementations
+//
+
+inline void ILDisplayCommon::PutBackColor ( OLE_COLOR pclr ) {
+    HRESULT _hr = put_BackColor(pclr);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline OLE_COLOR ILDisplayCommon::GetBackColor ( ) {
+    OLE_COLOR _result;
+    HRESULT _hr = get_BackColor(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void ILDisplayCommon::PutDisplayFlags ( enum LPVDisplayFlags val ) {
+    HRESULT _hr = put_DisplayFlags(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline enum LPVDisplayFlags ILDisplayCommon::GetDisplayFlags ( ) {
+    enum LPVDisplayFlags _result;
+    HRESULT _hr = get_DisplayFlags(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void ILDisplayCommon::PutHScrollBarPolicy ( enum LPVScrollBarPolicy val ) {
+    HRESULT _hr = put_HScrollBarPolicy(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline enum LPVScrollBarPolicy ILDisplayCommon::GetHScrollBarPolicy ( ) {
+    enum LPVScrollBarPolicy _result;
+    HRESULT _hr = get_HScrollBarPolicy(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void ILDisplayCommon::PutVScrollBarPolicy ( enum LPVScrollBarPolicy val ) {
+    HRESULT _hr = put_VScrollBarPolicy(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline enum LPVScrollBarPolicy ILDisplayCommon::GetVScrollBarPolicy ( ) {
+    enum LPVScrollBarPolicy _result;
+    HRESULT _hr = get_VScrollBarPolicy(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void ILDisplayCommon::PutZoomAnchor ( enum LPVZoomAnchor val ) {
+    HRESULT _hr = put_ZoomAnchor(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline enum LPVZoomAnchor ILDisplayCommon::GetZoomAnchor ( ) {
+    enum LPVZoomAnchor _result;
+    HRESULT _hr = get_ZoomAnchor(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void ILDisplayCommon::PutZoomX ( double val ) {
+    HRESULT _hr = put_ZoomX(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline double ILDisplayCommon::GetZoomX ( ) {
+    double _result = 0;
+    HRESULT _hr = get_ZoomX(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void ILDisplayCommon::PutZoomY ( double val ) {
+    HRESULT _hr = put_ZoomY(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline double ILDisplayCommon::GetZoomY ( ) {
+    double _result = 0;
+    HRESULT _hr = get_ZoomY(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void ILDisplayCommon::PutZoom ( double _arg1 ) {
+    HRESULT _hr = put_Zoom(_arg1);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline void ILDisplayCommon::PutPanX ( double val ) {
+    HRESULT _hr = put_PanX(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline double ILDisplayCommon::GetPanX ( ) {
+    double _result = 0;
+    HRESULT _hr = get_PanX(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void ILDisplayCommon::PutPanY ( double val ) {
+    HRESULT _hr = put_PanY(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline double ILDisplayCommon::GetPanY ( ) {
+    double _result = 0;
+    HRESULT _hr = get_PanY(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void ILDisplayCommon::PutAlignment ( enum LPVAlignment val ) {
+    HRESULT _hr = put_Alignment(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline enum LPVAlignment ILDisplayCommon::GetAlignment ( ) {
+    enum LPVAlignment _result;
+    HRESULT _hr = get_Alignment(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline HRESULT ILDisplayCommon::SetSize ( int w, int h ) {
+    HRESULT _hr = raw_SetSize(w, h);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplayCommon::FitInView ( int tlx, int tly, int w, int h, enum LPVAlignment alignFlags ) {
+    HRESULT _hr = raw_FitInView(tlx, tly, w, h, alignFlags);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplayCommon::FitToWindow ( enum LPVAlignment alignFlags ) {
+    HRESULT _hr = raw_FitToWindow(alignFlags);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplayCommon::Refresh ( ) {
+    HRESULT _hr = raw_Refresh();
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplayCommon::RefreshImmediate ( ) {
+    HRESULT _hr = raw_RefreshImmediate();
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline int ILDisplayCommon::SaveWindowToFile ( _bstr_t filename ) {
+    int _result = 0;
+    HRESULT _hr = raw_SaveWindowToFile(filename, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int ILDisplayCommon::SaveSceneToFile ( _bstr_t filename, double ZoomX, double ZoomY ) {
+    int _result = 0;
+    HRESULT _hr = raw_SaveSceneToFile(filename, ZoomX, ZoomY, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline HRESULT ILDisplayCommon::SetDisplayFlag ( enum LPVDisplayFlags flag, VARIANT_BOOL enable ) {
+    HRESULT _hr = raw_SetDisplayFlag(flag, enable);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline int ILDisplayCommon::AddReferenceLineH ( double position, double relativePosition, VARIANT_BOOL attached, OLE_COLOR clr ) {
+    int _result = 0;
+    HRESULT _hr = raw_AddReferenceLineH(position, relativePosition, attached, clr, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int ILDisplayCommon::AddReferenceLineV ( double position, double relativePosition, VARIANT_BOOL attached, OLE_COLOR clr ) {
+    int _result = 0;
+    HRESULT _hr = raw_AddReferenceLineV(position, relativePosition, attached, clr, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline HRESULT ILDisplayCommon::RemoveReferenceLine ( int refLineId ) {
+    HRESULT _hr = raw_RemoveReferenceLine(refLineId);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplayCommon::RemoveAllReferenceLine ( ) {
+    HRESULT _hr = raw_RemoveAllReferenceLine();
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplayCommon::ShowDialog ( _bstr_t dialogName, int x, int y, int w, int h ) {
+    HRESULT _hr = raw_ShowDialog(dialogName, x, y, w, h);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplayCommon::ShowDialogAsync ( _bstr_t dialogName, int x, int y, int w, int h, int refreshInterval ) {
+    HRESULT _hr = raw_ShowDialogAsync(dialogName, x, y, w, h, refreshInterval);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline void ILDisplayCommon::PutDrawingEnabled ( VARIANT_BOOL val ) {
+    HRESULT _hr = put_DrawingEnabled(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline VARIANT_BOOL ILDisplayCommon::GetDrawingEnabled ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_DrawingEnabled(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void ILDisplayCommon::PutAutoRefreshEnabled ( VARIANT_BOOL val ) {
+    HRESULT _hr = put_AutoRefreshEnabled(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline VARIANT_BOOL ILDisplayCommon::GetAutoRefreshEnabled ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_AutoRefreshEnabled(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int ILDisplayCommon::SaveSceneToImage ( IDispatch * image, double ZoomX, double ZoomY ) {
+    int _result = 0;
+    HRESULT _hr = raw_SaveSceneToImage(image, ZoomX, ZoomY, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int ILDisplayCommon::SaveViewToFile ( _bstr_t filename, int tlx, int tly, int w, int h, double ZoomX, double ZoomY ) {
+    int _result = 0;
+    HRESULT _hr = raw_SaveViewToFile(filename, tlx, tly, w, h, ZoomX, ZoomY, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int ILDisplayCommon::SaveViewToImage ( IDispatch * image, int tlx, int tly, int w, int h, double ZoomX, double ZoomY ) {
+    int _result = 0;
+    HRESULT _hr = raw_SaveViewToImage(image, tlx, tly, w, h, ZoomX, ZoomY, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int ILDisplayCommon::SaveWindowToImage ( IDispatch * image ) {
+    int _result = 0;
+    HRESULT _hr = raw_SaveWindowToImage(image, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline HRESULT ILDisplayCommon::SetDialogEventSink ( struct ILDisplayEvents * sink ) {
+    HRESULT _hr = raw_SetDialogEventSink(sink);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplayCommon::CloseDialog ( ) {
+    HRESULT _hr = raw_CloseDialog();
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+//
+// interface ILDisplay wrapper method implementations
+//
+
+inline void ILDisplay::PutKeepAspectRatio ( VARIANT_BOOL val ) {
+    HRESULT _hr = put_KeepAspectRatio(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline VARIANT_BOOL ILDisplay::GetKeepAspectRatio ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_KeepAspectRatio(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int ILDisplay::GetPixelUnderMouse ( ) {
+    int _result = 0;
+    HRESULT _hr = get_PixelUnderMouse(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline HRESULT ILDisplay::SetImage ( IDispatch * image ) {
+    HRESULT _hr = raw_SetImage(image);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplay::RemoveImage ( ) {
+    HRESULT _hr = raw_RemoveImage();
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline IDispatchPtr ILDisplay::GetImage ( ) {
+    IDispatch * _result = 0;
+    HRESULT _hr = raw_GetImage(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return IDispatchPtr(_result, false);
+}
+
+inline int ILDisplay::AddRegion ( IDispatch * region, VARIANT_BOOL interactable ) {
+    int _result = 0;
+    HRESULT _hr = raw_AddRegion(region, interactable, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline HRESULT ILDisplay::RemoveRegion ( IDispatch * region ) {
+    HRESULT _hr = raw_RemoveRegion(region);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplay::RemoveRegionByID ( int regionId ) {
+    HRESULT _hr = raw_RemoveRegionByID(regionId);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplay::RemoveAllRegions ( ) {
+    HRESULT _hr = raw_RemoveAllRegions();
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline IDispatchPtr ILDisplay::GetRegionByID ( int regionId ) {
+    IDispatch * _result = 0;
+    HRESULT _hr = raw_GetRegionByID(regionId, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return IDispatchPtr(_result, false);
+}
+
+inline int ILDisplay::AddObject ( IDispatch * drawable, int drawFlags ) {
+    int _result = 0;
+    HRESULT _hr = raw_AddObject(drawable, drawFlags, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline HRESULT ILDisplay::RemoveObject ( IDispatch * drawable ) {
+    HRESULT _hr = raw_RemoveObject(drawable);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplay::RemoveObjectByID ( int objectId ) {
+    HRESULT _hr = raw_RemoveObjectByID(objectId);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplay::RemoveAllObjects ( ) {
+    HRESULT _hr = raw_RemoveAllObjects();
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline IDispatchPtr ILDisplay::GetObjectByID ( int objectId ) {
+    IDispatch * _result = 0;
+    HRESULT _hr = raw_GetObjectByID(objectId, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return IDispatchPtr(_result, false);
+}
+
+inline HRESULT ILDisplay::FitInViewObject ( IDispatch * object, enum LPVAlignment alignFlags ) {
+    HRESULT _hr = raw_FitInViewObject(object, alignFlags);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplay::ClientToImage ( int x, int y, double * imageX, double * imageY ) {
+    HRESULT _hr = raw_ClientToImage(x, y, imageX, imageY);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT ILDisplay::ImageToClient ( double imageX, double imageY, int * x, int * y ) {
+    HRESULT _hr = raw_ImageToClient(imageX, imageY, x, y);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline int ILDisplay::AddInteractableObject ( IDispatch * interactable, int drawFlags ) {
+    int _result = 0;
+    HRESULT _hr = raw_AddInteractableObject(interactable, drawFlags, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+//
+// interface ILText wrapper method implementations
+//
+
+inline _bstr_t ILText::GetText ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_Text(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline void ILText::PutText ( _bstr_t val ) {
+    HRESULT _hr = put_Text(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline int ILText::GetPosX ( ) {
+    int _result = 0;
+    HRESULT _hr = get_PosX(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void ILText::PutPosX ( int val ) {
+    HRESULT _hr = put_PosX(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline int ILText::GetPosY ( ) {
+    int _result = 0;
+    HRESULT _hr = get_PosY(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void ILText::PutPosY ( int val ) {
+    HRESULT _hr = put_PosY(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline enum LPVAlignment ILText::GetAlignment ( ) {
+    enum LPVAlignment _result;
+    HRESULT _hr = get_Alignment(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void ILText::PutAlignment ( enum LPVAlignment val ) {
+    HRESULT _hr = put_Alignment(val);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline HRESULT ILText::Draw ( void * hdc, double ZoomX, double ZoomY, double PanX, double PanY ) {
+    HRESULT _hr = raw_Draw(hdc, ZoomX, ZoomY, PanX, PanY);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}

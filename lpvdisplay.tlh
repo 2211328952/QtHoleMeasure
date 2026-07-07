@@ -1,0 +1,671 @@
+﻿// Created by Microsoft (R) C/C++ Compiler Version 14.16.27054.0 (222ea5eb).
+//
+// c:\users\22113\desktop\files\qtholemeasure\lpvdisplay.tlh
+//
+// C++ source equivalent of type library F:\\Source\\StoneWall\\publish\\bin\\x64\\lpvDisplay.dll
+// compiler-generated file created 07/02/26 at 14:00:17 - DO NOT EDIT!
+
+#pragma once
+#pragma pack(push, 8)
+
+#include <comdef.h>
+
+//
+// Forward references and typedefs
+//
+
+struct __declspec(uuid("5b289f4f-ebc9-4a41-bd94-07f4a4e4e5f6"))
+/* LIBID */ __LPVDisplayLib;
+enum LPVDisplayFlags;
+enum LPVScrollBarPolicy;
+enum LPVZoomAnchor;
+enum LPVAlignment;
+enum LPVDisplayEventIDs;
+enum LPVMouseButton;
+enum LPVKeyboardModifiers;
+struct __declspec(uuid("2af01e49-5db5-495a-817b-3f6a590534bd"))
+/* dispinterface */ ILDisplayEvents;
+struct __declspec(uuid("113de32f-e05e-460d-82e6-6ef7d6458ec9"))
+/* dual interface */ ILDisplayCommon;
+struct __declspec(uuid("f2ec8876-80ed-4b14-b505-8bb2f99afcd6"))
+/* dual interface */ ILDisplay;
+struct __declspec(uuid("e2223b4a-9ab9-4b0c-9784-65a409304575"))
+/* dual interface */ ILText;
+struct /* coclass */ LDisplay;
+struct /* coclass */ LText;
+
+//
+// Smart pointer typedef declarations
+//
+
+_COM_SMARTPTR_TYPEDEF(ILDisplayEvents, __uuidof(ILDisplayEvents));
+_COM_SMARTPTR_TYPEDEF(ILDisplayCommon, __uuidof(ILDisplayCommon));
+_COM_SMARTPTR_TYPEDEF(ILDisplay, __uuidof(ILDisplay));
+_COM_SMARTPTR_TYPEDEF(ILText, __uuidof(ILText));
+
+//
+// Type library items
+//
+
+enum LPVDisplayFlags
+{
+    LPVDisplayMovable = 1,
+    LPVDisplayZoomable = 2,
+    LPVDisplayUseContextMenu = 4,
+    LPVDisplayInteractRegion = 8,
+    LPVDisplayShowPixelUnderMouse = 16,
+    LPVDisplayInteractObject = 32,
+    LPVDisplayDefault = 47,
+    LPVDisplayAll = 255
+};
+
+enum LPVScrollBarPolicy
+{
+    LPVScrollBarAsNeeded = 0,
+    LPVScrollBarAlwaysOff = 1,
+    LPVScrollBarAlwaysOn = 2
+};
+
+enum LPVZoomAnchor
+{
+    LPVAnchorViewTopLeft = 0,
+    LPVAnchorViewCenter = 1,
+    LPVAnchorUnderMouse = 2
+};
+
+enum LPVAlignment
+{
+    LPVAlignDefault = 0,
+    LPVAlignLeft = 1,
+    LPVAlignRight = 2,
+    LPVAlignHCenter = 4,
+    LPVAlignTop = 16,
+    LPVAlignBottom = 32,
+    LPVAlignVCenter = 64,
+    LPVAlignCenter = 68
+};
+
+enum LPVDisplayEventIDs
+{
+    LPVDisplayEventRefreshed = 33025,
+    LPVDisplayEventMouseDown = 33026,
+    LPVDisplayEventMouseUp = 33027,
+    LPVDisplayEventMouseDoubleClick = 33028,
+    LPVDisplayEventMouseMove = 33029,
+    LPVDisplayEventMouseWheel = 33030,
+    LPVDisplayEventKeyDown = 33031,
+    LPVDisplayEventKeyUp = 33032,
+    LPVDisplayEventRegionDragging = 33056,
+    LPVDisplayEventRegionDragFinished = 33057,
+    LPVDisplayEventRegionRemoving = 33058,
+    LPVDisplayEventRegionRemovingAll = 33059,
+    LPVDisplayEventObjectDragging = 33060,
+    LPVDisplayEventObjectDragFinished = 33061,
+    LPVDisplayEventObjectRemoving = 33062,
+    LPVDisplayEventObjectRemovingAll = 33063
+};
+
+enum LPVMouseButton
+{
+    LPVMouseButtonNone = 0,
+    LPVMouseButtonLeft = 1,
+    LPVMouseButtonRight = 2,
+    LPVMouseButtonMid = 4,
+    LPVMouseButtonX1 = 8,
+    LPVMouseButtonX2 = 16
+};
+
+enum LPVKeyboardModifiers
+{
+    LPVKeyboardModifiersNone = 0,
+    LPVKeyboardModifiersCtrl = 1,
+    LPVKeyboardModifiersShift = 2,
+    LPVKeyboardModifiersAlt = 4
+};
+
+struct __declspec(uuid("2af01e49-5db5-495a-817b-3f6a590534bd"))
+ILDisplayEvents : IDispatch
+{
+    //
+    // Wrapper methods for error-handling
+    //
+
+    // Methods:
+    HRESULT Refreshed ( );
+    HRESULT MouseDown (
+        enum LPVMouseButton buttons,
+        enum LPVKeyboardModifiers modifiers,
+        int x,
+        int y );
+    HRESULT MouseUp (
+        enum LPVMouseButton buttons,
+        enum LPVKeyboardModifiers modifiers,
+        int x,
+        int y );
+    HRESULT MouseDoubleClick (
+        enum LPVMouseButton buttons,
+        enum LPVKeyboardModifiers modifiers,
+        int x,
+        int y );
+    HRESULT MouseMove (
+        enum LPVMouseButton buttons,
+        enum LPVKeyboardModifiers modifiers,
+        int x,
+        int y );
+    HRESULT MouseWheel (
+        enum LPVMouseButton buttons,
+        enum LPVKeyboardModifiers modifiers,
+        int x,
+        int y,
+        int delta );
+    HRESULT KeyDown (
+        int keyCode,
+        enum LPVKeyboardModifiers modifiers );
+    HRESULT KeyUp (
+        int keyCode,
+        enum LPVKeyboardModifiers modifiers );
+    HRESULT RegionDragging (
+        int regionId );
+    HRESULT RegionDragFinished (
+        int regionId );
+    HRESULT RegionRemoving (
+        int regionId );
+    HRESULT RegionRemovingAll ( );
+    HRESULT ObjectDragging (
+        int objectId );
+    HRESULT ObjectDragFinished (
+        int objectId );
+    HRESULT ObjectRemoving (
+        int objectId );
+    HRESULT ObjectRemovingAll ( );
+};
+
+struct __declspec(uuid("113de32f-e05e-460d-82e6-6ef7d6458ec9"))
+ILDisplayCommon : IDispatch
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(get=GetDisplayFlags,put=PutDisplayFlags))
+    enum LPVDisplayFlags DisplayFlags;
+    __declspec(property(get=GetHScrollBarPolicy,put=PutHScrollBarPolicy))
+    enum LPVScrollBarPolicy HScrollBarPolicy;
+    __declspec(property(get=GetVScrollBarPolicy,put=PutVScrollBarPolicy))
+    enum LPVScrollBarPolicy VScrollBarPolicy;
+    __declspec(property(get=GetZoomAnchor,put=PutZoomAnchor))
+    enum LPVZoomAnchor ZoomAnchor;
+    __declspec(property(get=GetZoomX,put=PutZoomX))
+    double ZoomX;
+    __declspec(property(get=GetZoomY,put=PutZoomY))
+    double ZoomY;
+    __declspec(property(put=PutZoom))
+    double Zoom;
+    __declspec(property(get=GetPanX,put=PutPanX))
+    double PanX;
+    __declspec(property(get=GetPanY,put=PutPanY))
+    double PanY;
+    __declspec(property(get=GetBackColor,put=PutBackColor))
+    OLE_COLOR BackColor;
+    __declspec(property(get=GetAlignment,put=PutAlignment))
+    enum LPVAlignment Alignment;
+    __declspec(property(get=GetDrawingEnabled,put=PutDrawingEnabled))
+    VARIANT_BOOL DrawingEnabled;
+    __declspec(property(get=GetAutoRefreshEnabled,put=PutAutoRefreshEnabled))
+    VARIANT_BOOL AutoRefreshEnabled;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    void PutBackColor (
+        OLE_COLOR pclr );
+    OLE_COLOR GetBackColor ( );
+    void PutDisplayFlags (
+        enum LPVDisplayFlags val );
+    enum LPVDisplayFlags GetDisplayFlags ( );
+    void PutHScrollBarPolicy (
+        enum LPVScrollBarPolicy val );
+    enum LPVScrollBarPolicy GetHScrollBarPolicy ( );
+    void PutVScrollBarPolicy (
+        enum LPVScrollBarPolicy val );
+    enum LPVScrollBarPolicy GetVScrollBarPolicy ( );
+    void PutZoomAnchor (
+        enum LPVZoomAnchor val );
+    enum LPVZoomAnchor GetZoomAnchor ( );
+    void PutZoomX (
+        double val );
+    double GetZoomX ( );
+    void PutZoomY (
+        double val );
+    double GetZoomY ( );
+    void PutZoom (
+        double _arg1 );
+    void PutPanX (
+        double val );
+    double GetPanX ( );
+    void PutPanY (
+        double val );
+    double GetPanY ( );
+    void PutAlignment (
+        enum LPVAlignment val );
+    enum LPVAlignment GetAlignment ( );
+    HRESULT SetSize (
+        int w,
+        int h );
+    HRESULT FitInView (
+        int tlx,
+        int tly,
+        int w,
+        int h,
+        enum LPVAlignment alignFlags );
+    HRESULT FitToWindow (
+        enum LPVAlignment alignFlags );
+    HRESULT Refresh ( );
+    HRESULT RefreshImmediate ( );
+    int SaveWindowToFile (
+        _bstr_t filename );
+    int SaveSceneToFile (
+        _bstr_t filename,
+        double ZoomX,
+        double ZoomY );
+    HRESULT SetDisplayFlag (
+        enum LPVDisplayFlags flag,
+        VARIANT_BOOL enable );
+    int AddReferenceLineH (
+        double position,
+        double relativePosition,
+        VARIANT_BOOL attached,
+        OLE_COLOR clr );
+    int AddReferenceLineV (
+        double position,
+        double relativePosition,
+        VARIANT_BOOL attached,
+        OLE_COLOR clr );
+    HRESULT RemoveReferenceLine (
+        int refLineId );
+    HRESULT RemoveAllReferenceLine ( );
+    HRESULT ShowDialog (
+        _bstr_t dialogName,
+        int x,
+        int y,
+        int w,
+        int h );
+    HRESULT ShowDialogAsync (
+        _bstr_t dialogName,
+        int x,
+        int y,
+        int w,
+        int h,
+        int refreshInterval );
+    void PutDrawingEnabled (
+        VARIANT_BOOL val );
+    VARIANT_BOOL GetDrawingEnabled ( );
+    void PutAutoRefreshEnabled (
+        VARIANT_BOOL val );
+    VARIANT_BOOL GetAutoRefreshEnabled ( );
+    int SaveSceneToImage (
+        IDispatch * image,
+        double ZoomX,
+        double ZoomY );
+    int SaveViewToFile (
+        _bstr_t filename,
+        int tlx,
+        int tly,
+        int w,
+        int h,
+        double ZoomX,
+        double ZoomY );
+    int SaveViewToImage (
+        IDispatch * image,
+        int tlx,
+        int tly,
+        int w,
+        int h,
+        double ZoomX,
+        double ZoomY );
+    int SaveWindowToImage (
+        IDispatch * image );
+    HRESULT SetDialogEventSink (
+        struct ILDisplayEvents * sink );
+    HRESULT CloseDialog ( );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall put_BackColor (
+        /*[in]*/ OLE_COLOR pclr ) = 0;
+      virtual HRESULT __stdcall get_BackColor (
+        /*[out,retval]*/ OLE_COLOR * pclr ) = 0;
+      virtual HRESULT __stdcall put_DisplayFlags (
+        /*[in]*/ enum LPVDisplayFlags val ) = 0;
+      virtual HRESULT __stdcall get_DisplayFlags (
+        /*[out,retval]*/ enum LPVDisplayFlags * val ) = 0;
+      virtual HRESULT __stdcall put_HScrollBarPolicy (
+        /*[in]*/ enum LPVScrollBarPolicy val ) = 0;
+      virtual HRESULT __stdcall get_HScrollBarPolicy (
+        /*[out,retval]*/ enum LPVScrollBarPolicy * val ) = 0;
+      virtual HRESULT __stdcall put_VScrollBarPolicy (
+        /*[in]*/ enum LPVScrollBarPolicy val ) = 0;
+      virtual HRESULT __stdcall get_VScrollBarPolicy (
+        /*[out,retval]*/ enum LPVScrollBarPolicy * val ) = 0;
+      virtual HRESULT __stdcall put_ZoomAnchor (
+        /*[in]*/ enum LPVZoomAnchor val ) = 0;
+      virtual HRESULT __stdcall get_ZoomAnchor (
+        /*[out,retval]*/ enum LPVZoomAnchor * val ) = 0;
+      virtual HRESULT __stdcall put_ZoomX (
+        /*[in]*/ double val ) = 0;
+      virtual HRESULT __stdcall get_ZoomX (
+        /*[out,retval]*/ double * val ) = 0;
+      virtual HRESULT __stdcall put_ZoomY (
+        /*[in]*/ double val ) = 0;
+      virtual HRESULT __stdcall get_ZoomY (
+        /*[out,retval]*/ double * val ) = 0;
+      virtual HRESULT __stdcall put_Zoom (
+        /*[in]*/ double _arg1 ) = 0;
+      virtual HRESULT __stdcall put_PanX (
+        /*[in]*/ double val ) = 0;
+      virtual HRESULT __stdcall get_PanX (
+        /*[out,retval]*/ double * val ) = 0;
+      virtual HRESULT __stdcall put_PanY (
+        /*[in]*/ double val ) = 0;
+      virtual HRESULT __stdcall get_PanY (
+        /*[out,retval]*/ double * val ) = 0;
+      virtual HRESULT __stdcall put_Alignment (
+        /*[in]*/ enum LPVAlignment val ) = 0;
+      virtual HRESULT __stdcall get_Alignment (
+        /*[out,retval]*/ enum LPVAlignment * val ) = 0;
+      virtual HRESULT __stdcall raw_SetSize (
+        /*[in]*/ int w,
+        /*[in]*/ int h ) = 0;
+      virtual HRESULT __stdcall raw_FitInView (
+        /*[in]*/ int tlx,
+        /*[in]*/ int tly,
+        /*[in]*/ int w,
+        /*[in]*/ int h,
+        /*[in]*/ enum LPVAlignment alignFlags ) = 0;
+      virtual HRESULT __stdcall raw_FitToWindow (
+        /*[in]*/ enum LPVAlignment alignFlags ) = 0;
+      virtual HRESULT __stdcall raw_Refresh ( ) = 0;
+      virtual HRESULT __stdcall raw_RefreshImmediate ( ) = 0;
+      virtual HRESULT __stdcall raw_SaveWindowToFile (
+        /*[in]*/ BSTR filename,
+        /*[out,retval]*/ int * error ) = 0;
+      virtual HRESULT __stdcall raw_SaveSceneToFile (
+        /*[in]*/ BSTR filename,
+        /*[in]*/ double ZoomX,
+        /*[in]*/ double ZoomY,
+        /*[out,retval]*/ int * error ) = 0;
+      virtual HRESULT __stdcall raw_SetDisplayFlag (
+        /*[in]*/ enum LPVDisplayFlags flag,
+        /*[in]*/ VARIANT_BOOL enable ) = 0;
+      virtual HRESULT __stdcall raw_AddReferenceLineH (
+        /*[in]*/ double position,
+        /*[in]*/ double relativePosition,
+        /*[in]*/ VARIANT_BOOL attached,
+        /*[in]*/ OLE_COLOR clr,
+        /*[out,retval]*/ int * refLineId ) = 0;
+      virtual HRESULT __stdcall raw_AddReferenceLineV (
+        /*[in]*/ double position,
+        /*[in]*/ double relativePosition,
+        /*[in]*/ VARIANT_BOOL attached,
+        /*[in]*/ OLE_COLOR clr,
+        /*[out,retval]*/ int * refLineId ) = 0;
+      virtual HRESULT __stdcall raw_RemoveReferenceLine (
+        /*[in]*/ int refLineId ) = 0;
+      virtual HRESULT __stdcall raw_RemoveAllReferenceLine ( ) = 0;
+      virtual HRESULT __stdcall raw_ShowDialog (
+        /*[in]*/ BSTR dialogName,
+        /*[in]*/ int x,
+        /*[in]*/ int y,
+        /*[in]*/ int w,
+        /*[in]*/ int h ) = 0;
+      virtual HRESULT __stdcall raw_ShowDialogAsync (
+        /*[in]*/ BSTR dialogName,
+        /*[in]*/ int x,
+        /*[in]*/ int y,
+        /*[in]*/ int w,
+        /*[in]*/ int h,
+        /*[in]*/ int refreshInterval ) = 0;
+      virtual HRESULT __stdcall put_DrawingEnabled (
+        /*[in]*/ VARIANT_BOOL val ) = 0;
+      virtual HRESULT __stdcall get_DrawingEnabled (
+        /*[out,retval]*/ VARIANT_BOOL * val ) = 0;
+      virtual HRESULT __stdcall put_AutoRefreshEnabled (
+        /*[in]*/ VARIANT_BOOL val ) = 0;
+      virtual HRESULT __stdcall get_AutoRefreshEnabled (
+        /*[out,retval]*/ VARIANT_BOOL * val ) = 0;
+      virtual HRESULT __stdcall raw_SaveSceneToImage (
+        /*[in]*/ IDispatch * image,
+        /*[in]*/ double ZoomX,
+        /*[in]*/ double ZoomY,
+        /*[out,retval]*/ int * error ) = 0;
+      virtual HRESULT __stdcall raw_SaveViewToFile (
+        /*[in]*/ BSTR filename,
+        /*[in]*/ int tlx,
+        /*[in]*/ int tly,
+        /*[in]*/ int w,
+        /*[in]*/ int h,
+        /*[in]*/ double ZoomX,
+        /*[in]*/ double ZoomY,
+        /*[out,retval]*/ int * error ) = 0;
+      virtual HRESULT __stdcall raw_SaveViewToImage (
+        /*[in]*/ IDispatch * image,
+        /*[in]*/ int tlx,
+        /*[in]*/ int tly,
+        /*[in]*/ int w,
+        /*[in]*/ int h,
+        /*[in]*/ double ZoomX,
+        /*[in]*/ double ZoomY,
+        /*[out,retval]*/ int * error ) = 0;
+      virtual HRESULT __stdcall raw_SaveWindowToImage (
+        /*[in]*/ IDispatch * image,
+        /*[out,retval]*/ int * error ) = 0;
+      virtual HRESULT __stdcall raw_SetDialogEventSink (
+        /*[in]*/ struct ILDisplayEvents * sink ) = 0;
+      virtual HRESULT __stdcall raw_CloseDialog ( ) = 0;
+};
+
+struct __declspec(uuid("f2ec8876-80ed-4b14-b505-8bb2f99afcd6"))
+ILDisplay : ILDisplayCommon
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(get=GetKeepAspectRatio,put=PutKeepAspectRatio))
+    VARIANT_BOOL KeepAspectRatio;
+    __declspec(property(get=GetPixelUnderMouse))
+    int PixelUnderMouse;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    void PutKeepAspectRatio (
+        VARIANT_BOOL val );
+    VARIANT_BOOL GetKeepAspectRatio ( );
+    int GetPixelUnderMouse ( );
+    HRESULT SetImage (
+        IDispatch * image );
+    HRESULT RemoveImage ( );
+    IDispatchPtr GetImage ( );
+    int AddRegion (
+        IDispatch * region,
+        VARIANT_BOOL interactable );
+    HRESULT RemoveRegion (
+        IDispatch * region );
+    HRESULT RemoveRegionByID (
+        int regionId );
+    HRESULT RemoveAllRegions ( );
+    IDispatchPtr GetRegionByID (
+        int regionId );
+    int AddObject (
+        IDispatch * drawable,
+        int drawFlags );
+    HRESULT RemoveObject (
+        IDispatch * drawable );
+    HRESULT RemoveObjectByID (
+        int objectId );
+    HRESULT RemoveAllObjects ( );
+    IDispatchPtr GetObjectByID (
+        int objectId );
+    HRESULT FitInViewObject (
+        IDispatch * object,
+        enum LPVAlignment alignFlags );
+    HRESULT ClientToImage (
+        int x,
+        int y,
+        double * imageX,
+        double * imageY );
+    HRESULT ImageToClient (
+        double imageX,
+        double imageY,
+        int * x,
+        int * y );
+    int AddInteractableObject (
+        IDispatch * interactable,
+        int drawFlags );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall put_KeepAspectRatio (
+        /*[in]*/ VARIANT_BOOL val ) = 0;
+      virtual HRESULT __stdcall get_KeepAspectRatio (
+        /*[out,retval]*/ VARIANT_BOOL * val ) = 0;
+      virtual HRESULT __stdcall get_PixelUnderMouse (
+        /*[out,retval]*/ int * valw ) = 0;
+      virtual HRESULT __stdcall raw_SetImage (
+        /*[in]*/ IDispatch * image ) = 0;
+      virtual HRESULT __stdcall raw_RemoveImage ( ) = 0;
+      virtual HRESULT __stdcall raw_GetImage (
+        /*[out,retval]*/ IDispatch * * image ) = 0;
+      virtual HRESULT __stdcall raw_AddRegion (
+        /*[in]*/ IDispatch * region,
+        /*[in]*/ VARIANT_BOOL interactable,
+        /*[out,retval]*/ int * regionId ) = 0;
+      virtual HRESULT __stdcall raw_RemoveRegion (
+        /*[in]*/ IDispatch * region ) = 0;
+      virtual HRESULT __stdcall raw_RemoveRegionByID (
+        /*[in]*/ int regionId ) = 0;
+      virtual HRESULT __stdcall raw_RemoveAllRegions ( ) = 0;
+      virtual HRESULT __stdcall raw_GetRegionByID (
+        /*[in]*/ int regionId,
+        /*[out,retval]*/ IDispatch * * region ) = 0;
+      virtual HRESULT __stdcall raw_AddObject (
+        /*[in]*/ IDispatch * drawable,
+        /*[in]*/ int drawFlags,
+        /*[out,retval]*/ int * objectId ) = 0;
+      virtual HRESULT __stdcall raw_RemoveObject (
+        /*[in]*/ IDispatch * drawable ) = 0;
+      virtual HRESULT __stdcall raw_RemoveObjectByID (
+        /*[in]*/ int objectId ) = 0;
+      virtual HRESULT __stdcall raw_RemoveAllObjects ( ) = 0;
+      virtual HRESULT __stdcall raw_GetObjectByID (
+        /*[in]*/ int objectId,
+        /*[out,retval]*/ IDispatch * * drawable ) = 0;
+      virtual HRESULT __stdcall raw_FitInViewObject (
+        /*[in]*/ IDispatch * object,
+        /*[in]*/ enum LPVAlignment alignFlags ) = 0;
+      virtual HRESULT __stdcall raw_ClientToImage (
+        /*[in]*/ int x,
+        /*[in]*/ int y,
+        /*[out]*/ double * imageX,
+        /*[out]*/ double * imageY ) = 0;
+      virtual HRESULT __stdcall raw_ImageToClient (
+        /*[in]*/ double imageX,
+        /*[in]*/ double imageY,
+        /*[out]*/ int * x,
+        /*[out]*/ int * y ) = 0;
+      virtual HRESULT __stdcall raw_AddInteractableObject (
+        /*[in]*/ IDispatch * interactable,
+        /*[in]*/ int drawFlags,
+        /*[out,retval]*/ int * objectId ) = 0;
+};
+
+struct __declspec(uuid("e2223b4a-9ab9-4b0c-9784-65a409304575"))
+ILText : IDispatch
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(get=GetText,put=PutText))
+    _bstr_t Text;
+    __declspec(property(get=GetPosX,put=PutPosX))
+    int PosX;
+    __declspec(property(get=GetPosY,put=PutPosY))
+    int PosY;
+    __declspec(property(get=GetAlignment,put=PutAlignment))
+    enum LPVAlignment Alignment;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    _bstr_t GetText ( );
+    void PutText (
+        _bstr_t val );
+    int GetPosX ( );
+    void PutPosX (
+        int val );
+    int GetPosY ( );
+    void PutPosY (
+        int val );
+    enum LPVAlignment GetAlignment ( );
+    void PutAlignment (
+        enum LPVAlignment val );
+    HRESULT Draw (
+        void * hdc,
+        double ZoomX,
+        double ZoomY,
+        double PanX,
+        double PanY );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall get_Text (
+        /*[out,retval]*/ BSTR * val ) = 0;
+      virtual HRESULT __stdcall put_Text (
+        /*[in]*/ BSTR val ) = 0;
+      virtual HRESULT __stdcall get_PosX (
+        /*[out,retval]*/ int * val ) = 0;
+      virtual HRESULT __stdcall put_PosX (
+        /*[in]*/ int val ) = 0;
+      virtual HRESULT __stdcall get_PosY (
+        /*[out,retval]*/ int * val ) = 0;
+      virtual HRESULT __stdcall put_PosY (
+        /*[in]*/ int val ) = 0;
+      virtual HRESULT __stdcall get_Alignment (
+        /*[out,retval]*/ enum LPVAlignment * val ) = 0;
+      virtual HRESULT __stdcall put_Alignment (
+        /*[in]*/ enum LPVAlignment val ) = 0;
+      virtual HRESULT __stdcall raw_Draw (
+        /*[in]*/ void * hdc,
+        /*[in]*/ double ZoomX,
+        /*[in]*/ double ZoomY,
+        /*[in]*/ double PanX,
+        /*[in]*/ double PanY ) = 0;
+};
+
+struct __declspec(uuid("82c07241-7283-4957-9ee4-200d9903d13d"))
+LDisplay;
+    // [ default ] interface ILDisplay
+    // [ default, source ] dispinterface ILDisplayEvents
+
+struct __declspec(uuid("4ba55cd6-cf5a-4d89-9f1b-f7c4fc95738b"))
+LText;
+    // [ default ] interface ILText
+
+//
+// Wrapper method implementations
+//
+
+#include "c:\users\22113\desktop\files\qtholemeasure\lpvdisplay.tli"
+
+#pragma pack(pop)

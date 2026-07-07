@@ -1,0 +1,2 @@
+TemplateID,Side,CenterX,CenterY,Width,Height,Angle,KernelSize,Polarity,AcceptScore,NormScore,SampleWidth,SampleHeight,SampleInterval,MaxSamplePointCount,FitDistThreshold,FitCountThreshold
+9,Right,123.5,456.25,77,18,-12.5,5,1,44,1,11,22,6,2,1.25,3
