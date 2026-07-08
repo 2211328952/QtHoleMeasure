@@ -5,6 +5,8 @@
 
 namespace hm
 {
+static const double InvalidMeasurementValue = -9999.0;
+
 struct ImagePoint
 {
     double x = 0.0;
@@ -169,6 +171,14 @@ struct HoleMeasurement
     double heightMicron = 0.0;
     double xOffset = 0.0;
     double yOffset = 0.0;
+    double templateWorldX = 0.0;
+    double templateWorldY = 0.0;
+    double measuredWorldX = InvalidMeasurementValue;
+    double measuredWorldY = InvalidMeasurementValue;
+    double alignedWorldX = InvalidMeasurementValue;
+    double alignedWorldY = InvalidMeasurementValue;
+    double deltaX = InvalidMeasurementValue;
+    double deltaY = InvalidMeasurementValue;
     bool ok = false;
     GaugeLine top;
     GaugeLine bottom;
@@ -191,6 +201,7 @@ RoiAdjustment makeRoiAdjustment(const HoleRoi& baseRoi, const HoleRoi& editedRoi
 RoiAdjustment withoutGaugeParamOverride(const RoiAdjustment& adjustment);
 int selectRoiProfileIndex(const std::vector<RoiProfileRange>& profiles, const std::string& columnLabel);
 int selectRoiProfileIndex(const std::vector<RoiColumnProfile>& profiles, const std::string& columnLabel);
+std::vector<GaugeLine> makeCenterCrossLines(const ImagePoint& center, double radiusPx);
 HoleMeasurement makeMeasurement(const TemplatePoint& point, const ImagePoint& center, const GaugeLine& top,
     const GaugeLine& bottom, const GaugeLine& left, const GaugeLine& right, double micronPerPixel);
 bool isRoiMeasurementFailed(const HoleMeasurement& measurement, int roiIndex, bool measurementAvailable);

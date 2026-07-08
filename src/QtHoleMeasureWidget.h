@@ -95,6 +95,7 @@ private:
     hm::GaugeLine detectLine(const hm::HoleRoi& roi);
     hm::GaugeLine detectLineByGauge(const hm::HoleRoi& roi, const LPVGeomLib::ILRotRectRegionPtr& region);
     hm::GaugeLine detectLineByDetector(const hm::HoleRoi& roi, const LPVGeomLib::ILRotRectRegionPtr& region);
+    bool applyTemplateAlignmentWithLpv();
     void updateMeasurementTable();
     QString filesDir() const;
     QString roiConfigPath() const;

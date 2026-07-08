@@ -134,6 +134,68 @@ double pointLineDistance(const ImagePoint& point, const GaugeLine& line)
     const double py = point.y - origin.y;
     return std::fabs(dx * py - dy * px) / length;
 }
+
+bool lineIntersection(const GaugeLine& first, const GaugeLine& second, ImagePoint& intersection)
+{
+    double ax = first.end.x - first.start.x;
+    double ay = first.end.y - first.start.y;
+    double bx = second.end.x - second.start.x;
+    double by = second.end.y - second.start.y;
+    ImagePoint a = first.start;
+    ImagePoint b = second.start;
+
+    if (std::sqrt(ax * ax + ay * ay) <= 1e-9) {
+        const double radians = first.angleDeg * 3.14159265358979323846 / 180.0;
+        ax = std::cos(radians);
+        ay = std::sin(radians);
+        a = first.point;
+    }
+    if (std::sqrt(bx * bx + by * by) <= 1e-9) {
+        const double radians = second.angleDeg * 3.14159265358979323846 / 180.0;
+        bx = std::cos(radians);
+        by = std::sin(radians);
+        b = second.point;
+    }
+
+    const double denom = ax * by - ay * bx;
+    if (std::fabs(denom) <= 1e-9) {
+        return false;
+    }
+
+    const double cx = b.x - a.x;
+    const double cy = b.y - a.y;
+    const double t = (cx * by - cy * bx) / denom;
+    intersection = ImagePoint{ a.x + t * ax, a.y + t * ay };
+    return true;
+}
+
+bool measuredCenterFromLines(const GaugeLine& top, const GaugeLine& bottom,
+    const GaugeLine& left, const GaugeLine& right, ImagePoint& center)
+{
+    ImagePoint points[4];
+    if (!lineIntersection(top, left, points[0])
+        || !lineIntersection(top, right, points[1])
+        || !lineIntersection(bottom, left, points[2])
+        || !lineIntersection(bottom, right, points[3])) {
+        return false;
+    }
+
+    center = ImagePoint{
+        (points[0].x + points[1].x + points[2].x + points[3].x) * 0.25,
+        (points[0].y + points[1].y + points[2].y + points[3].y) * 0.25
+    };
+    return true;
+}
+
+void setInvalidAlignment(HoleMeasurement& measurement)
+{
+    measurement.measuredWorldX = InvalidMeasurementValue;
+    measurement.measuredWorldY = InvalidMeasurementValue;
+    measurement.alignedWorldX = InvalidMeasurementValue;
+    measurement.alignedWorldY = InvalidMeasurementValue;
+    measurement.deltaX = InvalidMeasurementValue;
+    measurement.deltaY = InvalidMeasurementValue;
+}
 }
 
 std::vector<TemplatePoint> loadTemplateCsv(const std::string& path)
@@ -504,6 +566,28 @@ GaugeLine selectLineCandidate(const std::vector<GaugeLine>& candidates, const Ho
     return index >= 0 ? candidates[index] : GaugeLine{};
 }
 
+std::vector<GaugeLine> makeCenterCrossLines(const ImagePoint& center, double radiusPx)
+{
+    GaugeLine horizontal;
+    horizontal.ok = true;
+    horizontal.point = center;
+    horizontal.angleDeg = 0.0;
+    horizontal.start = ImagePoint{ center.x - radiusPx, center.y };
+    horizontal.end = ImagePoint{ center.x + radiusPx, center.y };
+
+    GaugeLine vertical;
+    vertical.ok = true;
+    vertical.point = center;
+    vertical.angleDeg = 90.0;
+    vertical.start = ImagePoint{ center.x, center.y - radiusPx };
+    vertical.end = ImagePoint{ center.x, center.y + radiusPx };
+
+    std::vector<GaugeLine> lines;
+    lines.push_back(horizontal);
+    lines.push_back(vertical);
+    return lines;
+}
+
 HoleMeasurement makeMeasurement(const TemplatePoint& point, const ImagePoint& center, const GaugeLine& top,
     const GaugeLine& bottom, const GaugeLine& left, const GaugeLine& right, double micronPerPixel)
 {
@@ -511,6 +595,8 @@ HoleMeasurement makeMeasurement(const TemplatePoint& point, const ImagePoint& ce
     measurement.templateId = point.id;
     measurement.rowLabel = point.rowLabel;
     measurement.columnLabel = point.columnLabel;
+    measurement.templateWorldX = point.worldX;
+    measurement.templateWorldY = point.worldY;
     measurement.centerX = center.x;
     measurement.centerY = center.y;
     measurement.xOffset = point.xOffset;
@@ -521,9 +607,15 @@ HoleMeasurement makeMeasurement(const TemplatePoint& point, const ImagePoint& ce
     measurement.right = right;
     measurement.ok = top.ok && bottom.ok && left.ok && right.ok;
     if (!measurement.ok) {
+        setInvalidAlignment(measurement);
         return measurement;
     }
 
+    ImagePoint measuredCenter;
+    if (measuredCenterFromLines(top, bottom, left, right, measuredCenter)) {
+        measurement.centerX = measuredCenter.x;
+        measurement.centerY = measuredCenter.y;
+    }
     measurement.heightPx = lineSpacing(top, bottom);
     measurement.widthPx = lineSpacing(left, right);
     measurement.widthMicron = measurement.widthPx * micronPerPixel;
@@ -558,7 +650,8 @@ std::vector<HoleMeasurement> applyMeasurementOffsets(const std::vector<HoleMeasu
 void saveMeasurementsCsv(const std::string& path, const std::vector<HoleMeasurement>& measurements)
 {
     std::ofstream file(path.c_str(), std::ios::trunc);
-    file << "ID,Row Label,Column Label,CenterX,CenterY,HeightPx,WidthPx,HeightMicron,WidthMicron,OK\n";
+    file << "ID,Row Label,Column Label,CenterX,CenterY,HeightPx,WidthPx,HeightMicron,WidthMicron,OK,"
+         << "MeasuredWorldX,MeasuredWorldY,AlignedWorldX,AlignedWorldY,DeltaX,DeltaY\n";
     for (const auto& item : measurements) {
         file << item.templateId << ','
              << item.rowLabel << ','
@@ -569,7 +662,13 @@ void saveMeasurementsCsv(const std::string& path, const std::vector<HoleMeasurem
              << item.heightPx << ','
              << item.widthMicron << ','
              << item.heightMicron << ','
-             << (item.ok ? 1 : 0) << '\n';
+             << (item.ok ? 1 : 0) << ','
+             << item.measuredWorldX << ','
+             << item.measuredWorldY << ','
+             << item.alignedWorldX << ','
+             << item.alignedWorldY << ','
+             << item.deltaX << ','
+             << item.deltaY << '\n';
     }
 }
 

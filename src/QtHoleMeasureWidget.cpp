@@ -78,6 +78,23 @@ QDoubleSpinBox* doubleSpin(double min, double max, double value, int decimals = 
     return spin;
 }
 
+bool hasValidWorldPoint(const hm::HoleMeasurement& measurement)
+{
+    return measurement.ok
+        && measurement.measuredWorldX != hm::InvalidMeasurementValue
+        && measurement.measuredWorldY != hm::InvalidMeasurementValue;
+}
+
+void invalidateAlignment(hm::HoleMeasurement& measurement)
+{
+    measurement.measuredWorldX = hm::InvalidMeasurementValue;
+    measurement.measuredWorldY = hm::InvalidMeasurementValue;
+    measurement.alignedWorldX = hm::InvalidMeasurementValue;
+    measurement.alignedWorldY = hm::InvalidMeasurementValue;
+    measurement.deltaX = hm::InvalidMeasurementValue;
+    measurement.deltaY = hm::InvalidMeasurementValue;
+}
+
 QSpinBox* intSpin(int min, int max, int value)
 {
     auto* spin = new QSpinBox;
@@ -1532,6 +1549,88 @@ hm::GaugeLine QtHoleMeasureWidget::detectLineByDetector(const hm::HoleRoi& roi, 
     return hm::selectLineCandidate(candidates, roi, 10.0);
 }
 
+bool QtHoleMeasureWidget::applyTemplateAlignmentWithLpv()
+{
+    std::vector<int> validIndexes;
+    validIndexes.reserve(m_measurements.size());
+
+    ILPointsPtr measuredPoints = LPoints::Create();
+    ILPointsPtr templatePoints = LPoints::Create();
+    if (!measuredPoints || !templatePoints) {
+        for (auto& measurement : m_measurements) {
+            invalidateAlignment(measurement);
+        }
+        return false;
+    }
+
+    for (int i = 0; i < static_cast<int>(m_measurements.size()); ++i) {
+        hm::HoleMeasurement& measurement = m_measurements[i];
+        if (!hasValidWorldPoint(measurement)) {
+            invalidateAlignment(measurement);
+            continue;
+        }
+
+        validIndexes.push_back(i);
+        measuredPoints->Add(measurement.measuredWorldX, measurement.measuredWorldY);
+        templatePoints->Add(measurement.templateWorldX, measurement.templateWorldY);
+    }
+
+    if (validIndexes.size() < 2) {
+        for (int index : validIndexes) {
+            invalidateAlignment(m_measurements[index]);
+        }
+        return false;
+    }
+
+    try {
+        ILTransformPtr transform = LTransform::Create();
+        if (!transform) {
+            for (int index : validIndexes) {
+                invalidateAlignment(m_measurements[index]);
+            }
+            return false;
+        }
+
+        const double mapError = transform->Build(measuredPoints, templatePoints, LPVTransformRigid);
+        if (mapError < 0.0) {
+            for (int index : validIndexes) {
+                invalidateAlignment(m_measurements[index]);
+            }
+            return false;
+        }
+
+        ILPointsPtr alignedPoints = measuredPoints->Transform(transform);
+        if (!alignedPoints || alignedPoints->Count() != static_cast<int>(validIndexes.size())) {
+            for (int index : validIndexes) {
+                invalidateAlignment(m_measurements[index]);
+            }
+            return false;
+        }
+
+        for (int i = 0; i < static_cast<int>(validIndexes.size()); ++i) {
+            ILPointPtr alignedPoint = alignedPoints->Item(i);
+            if (!alignedPoint) {
+                invalidateAlignment(m_measurements[validIndexes[i]]);
+                continue;
+            }
+
+            hm::HoleMeasurement& measurement = m_measurements[validIndexes[i]];
+            measurement.alignedWorldX = alignedPoint->GetX();
+            measurement.alignedWorldY = alignedPoint->GetY();
+            measurement.deltaX = measurement.alignedWorldX - measurement.templateWorldX;
+            measurement.deltaY = measurement.alignedWorldY - measurement.templateWorldY;
+        }
+    }
+    catch (...) {
+        for (int index : validIndexes) {
+            invalidateAlignment(m_measurements[index]);
+        }
+        return false;
+    }
+
+    return true;
+}
+
 void QtHoleMeasureWidget::measureAll()
 {
     if (m_holes.empty()) {
@@ -1546,13 +1645,24 @@ void QtHoleMeasureWidget::measureAll()
         }
         hole.measurement = hm::makeMeasurement(hole.point, hole.shiftedCenter,
             lines[0], lines[1], lines[2], lines[3], m_micronPerPixel->value());
+        if (hole.measurement.ok && m_calib && m_calib->IsCalibrated()) {
+            m_calib->ImageToWorld(hole.measurement.centerX, hole.measurement.centerY,
+                &hole.measurement.measuredWorldX, &hole.measurement.measuredWorldY);
+        }
         m_measurements.push_back(hole.measurement);
+    }
+    const bool alignmentOk = applyTemplateAlignmentWithLpv();
+    for (int i = 0; i < static_cast<int>(m_measurements.size()) && i < static_cast<int>(m_holes.size()); ++i) {
+        m_holes[i].measurement = m_measurements[i];
     }
     updateMeasurementTable();
     displayImage();
     log(QString("Measured %1 holes. OK count: %2.")
         .arg(static_cast<int>(m_measurements.size()))
         .arg(std::count_if(m_measurements.begin(), m_measurements.end(), [](const hm::HoleMeasurement& m) { return m.ok; })));
+    if (!alignmentOk) {
+        log("Template alignment failed. Alignment and delta values are set to -9999.");
+    }
 }
 
 void QtHoleMeasureWidget::updateMeasurementTable()
@@ -1583,6 +1693,8 @@ void QtHoleMeasureWidget::clearMeasurements()
         measurement.centerY = hole.shiftedCenter.y;
         measurement.xOffset = hole.point.xOffset;
         measurement.yOffset = hole.point.yOffset;
+        measurement.templateWorldX = hole.point.worldX;
+        measurement.templateWorldY = hole.point.worldY;
         hole.measurement = measurement;
     }
     updateMeasurementTable();
@@ -1771,6 +1883,16 @@ void QtHoleMeasureWidget::displayImage()
             displayLine->Set(line.start.x, line.start.y, line.end.x, line.end.y);
             ILDrawable::Cast(displayLine)->SetPen(LPVPenSolid, 2, LPVBlue);
             m_displayCtrl->AddObject(*displayLine, 0);
+        }
+        if (hole.measurement.ok) {
+            const hm::ImagePoint center{ hole.measurement.centerX, hole.measurement.centerY };
+            const auto centerLines = hm::makeCenterCrossLines(center, 6.0);
+            for (const auto& line : centerLines) {
+                ILLinePtr centerLine = LLine::Create();
+                centerLine->Set(line.start.x, line.start.y, line.end.x, line.end.y);
+                ILDrawable::Cast(centerLine)->SetPen(LPVPenSolid, 3, LPVRed);
+                m_displayCtrl->AddObject(*centerLine, 0);
+            }
         }
     }
     m_displayCtrl->Refresh();

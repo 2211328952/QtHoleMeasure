@@ -206,7 +206,7 @@ void testRoiGroupBoundsContainsRotatedRois()
 void testMeasurementAndSave()
 {
     hm::TemplatePoint point{ 12, "C", "4", 0.0, 0.0, 0, true, 0, 2.0, -1.0 };
-    const auto measurement = hm::makeMeasurement(point, hm::ImagePoint{ 50.0, 60.0 },
+    const auto measurement = hm::makeMeasurement(point, hm::ImagePoint{ 10.0, 20.0 },
         hm::GaugeLine{ true, hm::ImagePoint{ 50.0, 40.0 }, 0.0, 90.0 },
         hm::GaugeLine{ true, hm::ImagePoint{ 50.0, 80.0 }, 0.0, 91.0 },
         hm::GaugeLine{ true, hm::ImagePoint{ 25.0, 60.0 }, 90.0, 88.0 },
@@ -229,9 +229,76 @@ void testMeasurementAndSave()
     std::string row;
     std::getline(file, header);
     std::getline(file, row);
-    require(header == "ID,Row Label,Column Label,CenterX,CenterY,HeightPx,WidthPx,HeightMicron,WidthMicron,OK",
+    require(header == "ID,Row Label,Column Label,CenterX,CenterY,HeightPx,WidthPx,HeightMicron,WidthMicron,OK,MeasuredWorldX,MeasuredWorldY,AlignedWorldX,AlignedWorldY,DeltaX,DeltaY",
         "measurement csv header");
-    require(row.find("12,C,4,50,60,50,40,127,99,1") == 0, "measurement csv row");
+    require(row.find("12,C,4,50,60,50,40,124,102,1,-9999,-9999,-9999,-9999,-9999,-9999") == 0,
+        "measurement csv row");
+}
+
+void testAlignmentCsvFieldsAndFailureSentinel()
+{
+    std::vector<hm::HoleMeasurement> measurements;
+
+    hm::HoleMeasurement first;
+    first.templateId = 1;
+    first.rowLabel = "A";
+    first.columnLabel = "1";
+    first.templateWorldX = 0.0;
+    first.templateWorldY = 0.0;
+    first.measuredWorldX = 10.0;
+    first.measuredWorldY = 20.0;
+    first.alignedWorldX = 0.5;
+    first.alignedWorldY = -0.25;
+    first.deltaX = 0.5;
+    first.deltaY = -0.25;
+    first.ok = true;
+    measurements.push_back(first);
+
+    hm::HoleMeasurement second;
+    second.templateId = 2;
+    second.rowLabel = "B";
+    second.columnLabel = "1";
+    second.templateWorldX = 100.0;
+    second.templateWorldY = 0.0;
+    second.measuredWorldX = 10.0;
+    second.measuredWorldY = 120.0;
+    second.alignedWorldX = 99.75;
+    second.alignedWorldY = 0.25;
+    second.deltaX = -0.25;
+    second.deltaY = 0.25;
+    second.ok = true;
+    measurements.push_back(second);
+
+    hm::HoleMeasurement failed;
+    failed.templateId = 3;
+    failed.rowLabel = "C";
+    failed.columnLabel = "1";
+    failed.templateWorldX = 0.0;
+    failed.templateWorldY = 100.0;
+    failed.ok = false;
+    measurements.push_back(failed);
+
+    require(nearlyEqual(measurements[2].measuredWorldX, hm::InvalidMeasurementValue), "failed measured world x sentinel");
+    require(nearlyEqual(measurements[2].alignedWorldX, hm::InvalidMeasurementValue), "failed aligned x sentinel");
+    require(nearlyEqual(measurements[2].deltaX, hm::InvalidMeasurementValue), "failed delta x sentinel");
+
+    const std::string path = "C:/Users/22113/Desktop/files/QtHoleMeasure/tests/alignment_measurement_test.csv";
+    hm::saveMeasurementsCsv(path, measurements);
+    std::ifstream file(path.c_str());
+    std::string header;
+    std::string firstRow;
+    std::string secondRow;
+    std::string failedRow;
+    std::getline(file, header);
+    std::getline(file, firstRow);
+    std::getline(file, secondRow);
+    std::getline(file, failedRow);
+
+    require(header == "ID,Row Label,Column Label,CenterX,CenterY,HeightPx,WidthPx,HeightMicron,WidthMicron,OK,MeasuredWorldX,MeasuredWorldY,AlignedWorldX,AlignedWorldY,DeltaX,DeltaY",
+        "alignment csv header");
+    require(firstRow.find("1,A,1,0,0,0,0,0,0,1,10,20,0.5,-0.25,0.5,-0.25") == 0, "first alignment csv row");
+    require(failedRow.find("3,C,1,0,0,0,0,0,0,0,-9999,-9999,-9999,-9999,-9999,-9999") == 0,
+        "failed alignment csv sentinel row");
 }
 
 void testMeasurementAveragesMutualPerpendicularDistances()
@@ -288,6 +355,23 @@ void testGaugeLineKeepsDetectedSegment()
     require(nearlyEqual(line.start.y, 25.0), "gauge line start y");
     require(nearlyEqual(line.end.x, 30.0), "gauge line end x");
     require(nearlyEqual(line.end.y, 35.0), "gauge line end y");
+}
+
+void testCenterCrossLinesUseImageCenter()
+{
+    const auto lines = hm::makeCenterCrossLines(hm::ImagePoint{ 100.0, 80.0 }, 6.0);
+
+    require(lines.size() == 2, "center cross should contain horizontal and vertical lines");
+    require(lines[0].ok, "center cross horizontal line ok");
+    require(nearlyEqual(lines[0].start.x, 94.0), "center cross horizontal start x");
+    require(nearlyEqual(lines[0].start.y, 80.0), "center cross horizontal start y");
+    require(nearlyEqual(lines[0].end.x, 106.0), "center cross horizontal end x");
+    require(nearlyEqual(lines[0].end.y, 80.0), "center cross horizontal end y");
+    require(lines[1].ok, "center cross vertical line ok");
+    require(nearlyEqual(lines[1].start.x, 100.0), "center cross vertical start x");
+    require(nearlyEqual(lines[1].start.y, 74.0), "center cross vertical start y");
+    require(nearlyEqual(lines[1].end.x, 100.0), "center cross vertical end x");
+    require(nearlyEqual(lines[1].end.y, 86.0), "center cross vertical end y");
 }
 
 void testLineCandidateSelectionRejectsSkewedHighScoreLine()
@@ -682,9 +766,11 @@ int main()
     testRoiGeneration();
     testRoiGroupBoundsContainsRotatedRois();
     testMeasurementAndSave();
+    testAlignmentCsvFieldsAndFailureSentinel();
     testMeasurementAveragesMutualPerpendicularDistances();
     testRoiMeasurementFailureStateFollowsSingleFailedLine();
     testGaugeLineKeepsDetectedSegment();
+    testCenterCrossLinesUseImageCenter();
     testLineCandidateSelectionRejectsSkewedHighScoreLine();
     testLineAngleDifferenceTreatsOppositeDirectionsAsSameLine();
     testRoiConfigSaveLoad();
