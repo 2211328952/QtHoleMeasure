@@ -88,8 +88,9 @@ int columnIndex(const TemplatePoint& point)
 
 int rowIndex(const TemplatePoint& point)
 {
+    const std::string& label = point.rowLabel;
     int value = 0;
-    for (char ch : point.rowLabel) {
+    for (char ch : label) {
         if (ch >= 'A' && ch <= 'Z') {
             value = value * 26 + (ch - 'A' + 1);
         }
@@ -100,19 +101,90 @@ int rowIndex(const TemplatePoint& point)
     return value > 0 ? value : point.id;
 }
 
+int rowLabelIndex(const std::string& label)
+{
+    int value = 0;
+    for (char ch : label) {
+        if (ch >= 'A' && ch <= 'Z') {
+            value = value * 26 + (ch - 'A' + 1);
+        }
+        else if (ch >= 'a' && ch <= 'z') {
+            value = value * 26 + (ch - 'a' + 1);
+        }
+    }
+    return value;
+}
+
+bool exportOrderIsRowFirst(ExportOrder order)
+{
+    return order == ExportOrder::RowFirstTopLeft
+        || order == ExportOrder::RowFirstBottomLeft
+        || order == ExportOrder::RowFirstBottomRight
+        || order == ExportOrder::RowFirstTopRight;
+}
+
+bool exportOrderStartsTop(ExportOrder order)
+{
+    return order == ExportOrder::RowFirstTopLeft
+        || order == ExportOrder::RowFirstTopRight
+        || order == ExportOrder::ColumnFirstTopLeft
+        || order == ExportOrder::ColumnFirstTopRight;
+}
+
 bool pointBefore(const TemplatePoint& a, const TemplatePoint& b, ExportOrder order)
 {
     const int ca = columnIndex(a);
     const int cb = columnIndex(b);
-    if (ca != cb) {
-        return order == ExportOrder::FirstColumnTopDown ? ca < cb : ca > cb;
-    }
     const int ra = rowIndex(a);
     const int rb = rowIndex(b);
-    if (ra != rb) {
-        return ra < rb;
+
+    const bool rowFirst = exportOrderIsRowFirst(order);
+    const bool topStart = exportOrderStartsTop(order);
+    const bool leftStart = order == ExportOrder::RowFirstTopLeft
+        || order == ExportOrder::RowFirstBottomLeft
+        || order == ExportOrder::ColumnFirstTopLeft
+        || order == ExportOrder::ColumnFirstBottomLeft;
+
+    if (rowFirst) {
+        if (ra != rb) {
+            return topStart ? ra < rb : ra > rb;
+        }
+        if (ca != cb) {
+            return leftStart ? ca < cb : ca > cb;
+        }
+    }
+    else {
+        if (ca != cb) {
+            return leftStart ? ca < cb : ca > cb;
+        }
+        if (ra != rb) {
+            return topStart ? ra < rb : ra > rb;
+        }
     }
     return a.id < b.id;
+}
+
+bool exportOrderStartsLeft(ExportOrder order)
+{
+    return order == ExportOrder::RowFirstTopLeft
+        || order == ExportOrder::RowFirstBottomLeft
+        || order == ExportOrder::ColumnFirstTopLeft
+        || order == ExportOrder::ColumnFirstBottomLeft;
+}
+
+ExportOrder exportOrderFromInt(int value, ExportOrder fallback)
+{
+    switch (value) {
+    case 0: return ExportOrder::ColumnFirstTopLeft;
+    case 1: return ExportOrder::ColumnFirstTopRight;
+    case 2: return ExportOrder::RowFirstTopLeft;
+    case 3: return ExportOrder::RowFirstBottomLeft;
+    case 4: return ExportOrder::RowFirstBottomRight;
+    case 5: return ExportOrder::RowFirstTopRight;
+    case 6: return ExportOrder::ColumnFirstBottomLeft;
+    case 7: return ExportOrder::ColumnFirstBottomRight;
+    default: return fallback;
+    }
 }
 
 double pointLineDistance(const ImagePoint& point, const GaugeLine& line)
@@ -268,9 +340,32 @@ std::vector<std::string> sortColumnLabelsForOrder(const std::vector<std::string>
             bi = 0;
         }
         if (ai != bi) {
-            return order == ExportOrder::FirstColumnTopDown ? ai < bi : ai > bi;
+            return exportOrderStartsLeft(order) ? ai < bi : ai > bi;
         }
-        return order == ExportOrder::FirstColumnTopDown ? a < b : a > b;
+        return exportOrderStartsLeft(order) ? a < b : a > b;
+    });
+    return sorted;
+}
+
+std::string profileLabelForOrder(const TemplatePoint& point, ExportOrder order)
+{
+    return exportOrderIsRowFirst(order) ? point.rowLabel : point.columnLabel;
+}
+
+std::vector<std::string> sortProfileLabelsForOrder(const std::vector<std::string>& labels, ExportOrder order)
+{
+    if (!exportOrderIsRowFirst(order)) {
+        return sortColumnLabelsForOrder(labels, order);
+    }
+
+    std::vector<std::string> sorted = labels;
+    std::sort(sorted.begin(), sorted.end(), [order](const std::string& a, const std::string& b) {
+        const int ai = rowLabelIndex(a);
+        const int bi = rowLabelIndex(b);
+        if (ai != bi) {
+            return exportOrderStartsTop(order) ? ai < bi : ai > bi;
+        }
+        return exportOrderStartsTop(order) ? a < b : a > b;
     });
     return sorted;
 }
@@ -302,6 +397,36 @@ void sortTemplateImagePairs(std::vector<TemplatePoint>& points, std::vector<Imag
 
     points.swap(sortedPoints);
     imagePoints.swap(sortedImagePoints);
+}
+
+double estimateMicronPerPixel(const std::vector<TemplatePoint>& points,
+    const std::vector<ImagePoint>& imagePoints, double fallback)
+{
+    if (points.size() != imagePoints.size() || points.size() < 2) {
+        return fallback;
+    }
+
+    double bestWorldDist = 0.0;
+    double bestImageDist = 0.0;
+    for (int i = 0; i < static_cast<int>(points.size()); ++i) {
+        for (int j = i + 1; j < static_cast<int>(points.size()); ++j) {
+            const double worldDx = points[j].worldX - points[i].worldX;
+            const double worldDy = points[j].worldY - points[i].worldY;
+            const double imageDx = imagePoints[j].x - imagePoints[i].x;
+            const double imageDy = imagePoints[j].y - imagePoints[i].y;
+            const double worldDist = std::sqrt(worldDx * worldDx + worldDy * worldDy);
+            const double imageDist = std::sqrt(imageDx * imageDx + imageDy * imageDy);
+            if (worldDist <= 1e-9 || imageDist <= 1e-9) {
+                continue;
+            }
+            if (bestWorldDist <= 0.0 || worldDist < bestWorldDist) {
+                bestWorldDist = worldDist;
+                bestImageDist = imageDist;
+            }
+        }
+    }
+
+    return bestWorldDist > 0.0 && bestImageDist > 0.0 ? bestWorldDist / bestImageDist : fallback;
 }
 
 std::vector<ImagePoint> applyArrayOffset(const std::vector<ImagePoint>& points, const ArrayOffset& offset)
@@ -481,6 +606,25 @@ RoiAdjustment withoutGaugeParamOverride(const RoiAdjustment& adjustment)
     return result;
 }
 
+std::vector<RoiAdjustment> makeRoiAdjustmentsForCurrentRois(const std::vector<HoleRoi>& masterRois,
+    const ImagePoint& masterCenter, const ImagePoint& targetCenter, int targetTemplateId,
+    const std::vector<HoleRoi>& currentRois)
+{
+    const int count = static_cast<int>(std::min(masterRois.size(), currentRois.size()));
+    std::vector<RoiAdjustment> adjustments;
+    adjustments.reserve(count);
+    for (int i = 0; i < count; ++i) {
+        const HoleRoi base = makeDerivedHoleRoi(
+            masterRois[i],
+            masterCenter,
+            targetCenter,
+            targetTemplateId,
+            RoiAdjustment{});
+        adjustments.push_back(makeRoiAdjustment(base, currentRois[i]));
+    }
+    return adjustments;
+}
+
 int selectRoiProfileIndex(const std::vector<RoiProfileRange>& profiles, const std::string& columnLabel)
 {
     int column = 0;
@@ -586,6 +730,67 @@ std::vector<GaugeLine> makeCenterCrossLines(const ImagePoint& center, double rad
     lines.push_back(horizontal);
     lines.push_back(vertical);
     return lines;
+}
+
+std::vector<HoleLabel> makeHoleLabels(const std::vector<TemplatePoint>& points,
+    const std::vector<std::vector<HoleRoi> >& roiGroups)
+{
+    std::vector<HoleLabel> labels;
+    const int count = static_cast<int>(std::min(points.size(), roiGroups.size()));
+    labels.reserve(count);
+
+    for (int i = 0; i < count; ++i) {
+        const ImageRect bounds = makeRoiGroupBounds(roiGroups[i], 0.0);
+        if (!bounds.ok) {
+            continue;
+        }
+        labels.push_back(HoleLabel{
+            HoleLabelKind::Id,
+            std::to_string(i + 1),
+            ImagePoint{ bounds.left + bounds.width * 0.5, bounds.top + bounds.height * 0.5 }
+        });
+    }
+    return labels;
+}
+
+int selectStableProfileMasterIndex(const std::vector<TemplatePoint>& points,
+    const std::vector<int>& profileIndexes, int profileIndex, int currentMasterId,
+    const std::vector<int>& preferredMasterIds)
+{
+    if (points.size() != profileIndexes.size()) {
+        return -1;
+    }
+
+    auto findById = [&](int templateId) {
+        if (templateId <= 0) {
+            return -1;
+        }
+        for (int i = 0; i < static_cast<int>(points.size()); ++i) {
+            if (profileIndexes[i] == profileIndex && points[i].id == templateId) {
+                return i;
+            }
+        }
+        return -1;
+    };
+
+    const int currentIndex = findById(currentMasterId);
+    if (currentIndex >= 0) {
+        return currentIndex;
+    }
+
+    for (int templateId : preferredMasterIds) {
+        const int preferredIndex = findById(templateId);
+        if (preferredIndex >= 0) {
+            return preferredIndex;
+        }
+    }
+
+    for (int i = 0; i < static_cast<int>(points.size()); ++i) {
+        if (profileIndexes[i] == profileIndex) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 HoleMeasurement makeMeasurement(const TemplatePoint& point, const ImagePoint& center, const GaugeLine& top,
@@ -808,9 +1013,7 @@ bool loadAppParams(const std::string& path, AppParams& params)
     params.offsetY = getDouble("OffsetY", params.offsetY);
     params.angleDeg = getDouble("AngleDeg", params.angleDeg);
     params.micronPerPixel = getDouble("MicronPerPixel", params.micronPerPixel);
-    params.pointOrder = getInt("PointOrder", static_cast<int>(params.pointOrder)) == 1
-        ? ExportOrder::LastColumnTopDown
-        : ExportOrder::FirstColumnTopDown;
+    params.pointOrder = exportOrderFromInt(getInt("PointOrder", static_cast<int>(params.pointOrder)), params.pointOrder);
     params.lineFindMethod = getInt("LineFindMethod", static_cast<int>(params.lineFindMethod)) == 1
         ? LineFindMethod::LineDetector
         : LineFindMethod::LineGauge;

@@ -29,6 +29,7 @@
 #include <cmath>
 #include <map>
 #include <set>
+#include <sstream>
 
 using namespace LPVCoreLib;
 using namespace LPVCalibLib;
@@ -56,6 +57,16 @@ QTableWidgetItem* checkItem(bool checked)
     tableItem->setFlags((tableItem->flags() | Qt::ItemIsUserCheckable) & ~Qt::ItemIsEditable);
     tableItem->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
     return tableItem;
+}
+
+std::wstring widen(const std::string& text)
+{
+    return std::wstring(text.begin(), text.end());
+}
+
+int displayInt(double value)
+{
+    return static_cast<int>(value >= 0.0 ? value + 0.5 : value - 0.5);
 }
 
 int columnNumber(const std::string& label)
@@ -150,6 +161,66 @@ void setPolarityComboValue(QComboBox* combo, int value)
     }
     const int index = combo->findData(value);
     combo->setCurrentIndex(index >= 0 ? index : 0);
+}
+
+hm::ExportOrder exportOrderFromIndexes(int majorIndex, int cornerIndex)
+{
+    if (majorIndex == 0) {
+        switch (cornerIndex) {
+        case 1: return hm::ExportOrder::RowFirstBottomLeft;
+        case 2: return hm::ExportOrder::RowFirstBottomRight;
+        case 3: return hm::ExportOrder::RowFirstTopRight;
+        case 0:
+        default: return hm::ExportOrder::RowFirstTopLeft;
+        }
+    }
+
+    switch (cornerIndex) {
+    case 1: return hm::ExportOrder::ColumnFirstBottomLeft;
+    case 2: return hm::ExportOrder::ColumnFirstBottomRight;
+    case 3: return hm::ExportOrder::ColumnFirstTopRight;
+    case 0:
+    default: return hm::ExportOrder::ColumnFirstTopLeft;
+    }
+}
+
+int orderMajorIndex(hm::ExportOrder order)
+{
+    switch (order) {
+    case hm::ExportOrder::RowFirstTopLeft:
+    case hm::ExportOrder::RowFirstBottomLeft:
+    case hm::ExportOrder::RowFirstBottomRight:
+    case hm::ExportOrder::RowFirstTopRight:
+        return 0;
+    default:
+        return 1;
+    }
+}
+
+int startCornerIndex(hm::ExportOrder order)
+{
+    switch (order) {
+    case hm::ExportOrder::RowFirstBottomLeft:
+    case hm::ExportOrder::ColumnFirstBottomLeft:
+        return 1;
+    case hm::ExportOrder::RowFirstBottomRight:
+    case hm::ExportOrder::ColumnFirstBottomRight:
+        return 2;
+    case hm::ExportOrder::RowFirstTopRight:
+    case hm::ExportOrder::ColumnFirstTopRight:
+        return 3;
+    case hm::ExportOrder::RowFirstTopLeft:
+    case hm::ExportOrder::ColumnFirstTopLeft:
+    default:
+        return 0;
+    }
+}
+
+hm::ExportOrder exportOrderFromCombos(const QComboBox* orderMajor, const QComboBox* startCorner)
+{
+    const int majorIndex = orderMajor ? orderMajor->currentData().toInt() : 0;
+    const int cornerIndex = startCorner ? startCorner->currentData().toInt() : 0;
+    return exportOrderFromIndexes(majorIndex, cornerIndex);
 }
 
 hm::GaugeLine makeGaugeLineFromLpvLine(const ILLinePtr& detected, double score)
@@ -257,11 +328,21 @@ void QtHoleMeasureWidget::buildUi()
     connect(m_acceptScore, SIGNAL(valueChanged(int)), this, SLOT(gaugeDefaultsChanged()));
     connect(m_defaultPolarity, SIGNAL(currentIndexChanged(int)), this, SLOT(gaugeDefaultsChanged()));
     m_roiPolarity = polarityCombo();
+    m_roiPolarity->setParent(this);
+    m_roiPolarity->hide();
 
-    m_sortOrder = new QComboBox;
-    m_sortOrder->addItem("First column top-down");
-    m_sortOrder->addItem("Last column top-down");
-    connect(m_sortOrder, SIGNAL(currentIndexChanged(int)), this, SLOT(rebuildArray()));
+    m_orderMajor = new QComboBox;
+    m_orderMajor->addItem("Row first", 0);
+    m_orderMajor->addItem("Column first", 1);
+    m_orderMajor->setCurrentIndex(1);
+    connect(m_orderMajor, SIGNAL(currentIndexChanged(int)), this, SLOT(rebuildArray()));
+
+    m_startCorner = new QComboBox;
+    m_startCorner->addItem("Top-left", 0);
+    m_startCorner->addItem("Bottom-left", 1);
+    m_startCorner->addItem("Bottom-right", 2);
+    m_startCorner->addItem("Top-right", 3);
+    connect(m_startCorner, SIGNAL(currentIndexChanged(int)), this, SLOT(rebuildArray()));
 
     m_lineFindMethod = new QComboBox;
     m_lineFindMethod->addItem("LineGauge");
@@ -285,6 +366,7 @@ void QtHoleMeasureWidget::buildUi()
     m_columnProfileTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_columnProfileTable->setSelectionMode(QAbstractItemView::SingleSelection);
     connect(m_columnProfileTable, &QTableWidget::itemChanged, this, &QtHoleMeasureWidget::columnProfileItemChanged);
+    connect(m_columnProfileTable, &QTableWidget::itemSelectionChanged, this, &QtHoleMeasureWidget::displayImage);
 
     auto* controls = new QGroupBox("Controls");
     auto* form = new QFormLayout(controls);
@@ -306,35 +388,31 @@ void QtHoleMeasureWidget::buildUi()
     form->addRow("Sample interval", m_sampleInterval);
     form->addRow("Accept score", m_acceptScore);
     form->addRow("Polarity", m_defaultPolarity);
-    form->addRow("Point order", m_sortOrder);
+    form->addRow("Order major", m_orderMajor);
+    form->addRow("Start corner", m_startCorner);
     form->addRow("Line find", m_lineFindMethod);
 
-    m_holeTable = new QTableWidget(0, 6);
+    m_holeTable = new QTableWidget(0, 6, this);
     m_holeTable->setHorizontalHeaderLabels(QStringList() << "ID" << "Row" << "Col" << "Profile" << "X" << "Y");
     m_holeTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_holeTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_holeTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_holeTable->hide();
     connect(m_holeTable, &QTableWidget::itemSelectionChanged, this, &QtHoleMeasureWidget::selectedHoleChanged);
 
-    m_roiTable = new QTableWidget(0, 11);
+    m_roiTable = new QTableWidget(0, 11, this);
     m_roiTable->setHorizontalHeaderLabels(QStringList() << "Side" << "X" << "Y" << "W" << "H" << "Angle"
         << "Sample W" << "Sample H" << "Interval" << "Score" << "Polarity");
     m_roiTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_roiTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_roiTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_roiTable->hide();
     connect(m_roiTable, &QTableWidget::itemSelectionChanged, this, &QtHoleMeasureWidget::selectedRoiChanged);
 
-    auto* roiBox = new QGroupBox("Selected ROI");
-    auto* roiForm = new QFormLayout(roiBox);
-    auto* applyRoiButton = new QPushButton("Apply ROI");
-    connect(applyRoiButton, &QPushButton::clicked, this, &QtHoleMeasureWidget::applyRoiEdits);
-    roiForm->addRow(m_roiTable);
-    roiForm->addRow("Polarity", m_roiPolarity);
-    roiForm->addRow(applyRoiButton);
-
-    m_resultTable = new QTableWidget(0, 7);
+    m_resultTable = new QTableWidget(0, 7, this);
     m_resultTable->setHorizontalHeaderLabels(QStringList() << "ID" << "Row" << "Col" << "Height px" << "Width px" << "Height um" << "Width um");
     m_resultTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_resultTable->hide();
 
     m_status = new QLabel;
     m_status->setWordWrap(true);
@@ -343,13 +421,8 @@ void QtHoleMeasureWidget::buildUi()
     sideLayout->addWidget(controls);
     sideLayout->addWidget(new QLabel("Profiles"));
     sideLayout->addWidget(m_profileList, 1);
-    sideLayout->addWidget(new QLabel("Column Profiles"));
+    sideLayout->addWidget(new QLabel("Row / Column Profiles"));
     sideLayout->addWidget(m_columnProfileTable, 2);
-    sideLayout->addWidget(new QLabel("Holes"));
-    sideLayout->addWidget(m_holeTable, 2);
-    sideLayout->addWidget(roiBox, 1);
-    sideLayout->addWidget(new QLabel("Results"));
-    sideLayout->addWidget(m_resultTable, 2);
     sideLayout->addWidget(m_status);
 
     auto* mainLayout = new QHBoxLayout(this);
@@ -556,6 +629,25 @@ int QtHoleMeasureWidget::selectedProfileIndex() const
     return 0;
 }
 
+hm::ExportOrder QtHoleMeasureWidget::currentExportOrder() const
+{
+    return exportOrderFromCombos(m_orderMajor, m_startCorner);
+}
+
+std::string QtHoleMeasureWidget::profileGroupLabelForHole(const HoleState& hole) const
+{
+    return hm::profileLabelForOrder(hole.point, currentExportOrder());
+}
+
+std::string QtHoleMeasureWidget::selectedProfileGroupLabel() const
+{
+    if (!m_columnProfileTable || m_columnProfileTable->currentRow() < 0) {
+        return std::string();
+    }
+    QTableWidgetItem* labelItem = m_columnProfileTable->item(m_columnProfileTable->currentRow(), 0);
+    return labelItem ? labelItem->text().toStdString() : std::string();
+}
+
 int QtHoleMeasureWidget::columnProfileIndex(const std::string& columnLabel) const
 {
     const int index = hm::selectRoiProfileIndex(m_columnProfiles, columnLabel);
@@ -578,7 +670,7 @@ void QtHoleMeasureWidget::setColumnProfileIndex(const std::string& columnLabel, 
 
 int QtHoleMeasureWidget::profileIndexForHole(const HoleState& hole) const
 {
-    return columnProfileIndex(hole.point.columnLabel);
+    return columnProfileIndex(profileGroupLabelForHole(hole));
 }
 
 int QtHoleMeasureWidget::firstHoleIndexForProfile(int profileIndex) const
@@ -603,20 +695,28 @@ void QtHoleMeasureWidget::selectFirstHoleInProfile(int profileIndex)
     }
 }
 
-void QtHoleMeasureWidget::ensureProfileMasters()
+void QtHoleMeasureWidget::ensureProfileMasters(const std::vector<int>& preferredMasterIds)
 {
     if (m_holes.empty() || m_roiProfiles.empty()) {
         return;
     }
 
+    std::vector<hm::TemplatePoint> points;
+    std::vector<int> profileIndexes;
+    points.reserve(m_holes.size());
+    profileIndexes.reserve(m_holes.size());
+    for (const auto& hole : m_holes) {
+        points.push_back(hole.point);
+        profileIndexes.push_back(hole.roiProfileIndex);
+    }
+
     for (auto& profile : m_roiProfiles) {
-        int masterHoleIndex = -1;
-        for (int holeIndex = 0; holeIndex < static_cast<int>(m_holes.size()); ++holeIndex) {
-            if (m_holes[holeIndex].roiProfileIndex == profile.range.profileIndex) {
-                masterHoleIndex = holeIndex;
-                break;
-            }
-        }
+        const int masterHoleIndex = hm::selectStableProfileMasterIndex(
+            points,
+            profileIndexes,
+            profile.range.profileIndex,
+            profile.masterTemplateId,
+            preferredMasterIds);
         if (masterHoleIndex < 0) {
             profile.masterTemplateId = 0;
             profile.masterRois.clear();
@@ -935,9 +1035,7 @@ hm::AppParams QtHoleMeasureWidget::readAppParams() const
     params.offsetY = m_dy->value();
     params.angleDeg = m_angle->value();
     params.micronPerPixel = m_micronPerPixel->value();
-    params.pointOrder = m_sortOrder->currentIndex() == 0
-        ? hm::ExportOrder::FirstColumnTopDown
-        : hm::ExportOrder::LastColumnTopDown;
+    params.pointOrder = exportOrderFromCombos(m_orderMajor, m_startCorner);
     params.lineFindMethod = m_lineFindMethod->currentIndex() == 1
         ? hm::LineFindMethod::LineDetector
         : hm::LineFindMethod::LineGauge;
@@ -964,7 +1062,8 @@ void QtHoleMeasureWidget::applyAppParams(const hm::AppParams& params)
     const QSignalBlocker sampleIntervalBlocker(m_sampleInterval);
     const QSignalBlocker acceptScoreBlocker(m_acceptScore);
     const QSignalBlocker polarityBlocker(m_defaultPolarity);
-    const QSignalBlocker sortBlocker(m_sortOrder);
+    const QSignalBlocker orderMajorBlocker(m_orderMajor);
+    const QSignalBlocker startCornerBlocker(m_startCorner);
     const QSignalBlocker lineFindBlocker(m_lineFindMethod);
 
     m_dx->setValue(params.offsetX);
@@ -979,7 +1078,8 @@ void QtHoleMeasureWidget::applyAppParams(const hm::AppParams& params)
     m_sampleInterval->setValue(params.gauge.sampleRegionInterval);
     m_acceptScore->setValue(params.gauge.acceptScore);
     setPolarityComboValue(m_defaultPolarity, params.gauge.polarity);
-    m_sortOrder->setCurrentIndex(params.pointOrder == hm::ExportOrder::LastColumnTopDown ? 1 : 0);
+    m_orderMajor->setCurrentIndex(orderMajorIndex(params.pointOrder));
+    m_startCorner->setCurrentIndex(startCornerIndex(params.pointOrder));
     m_lineFindMethod->setCurrentIndex(params.lineFindMethod == hm::LineFindMethod::LineDetector ? 1 : 0);
     if (!params.roiProfiles.empty()) {
         if (m_roiProfiles.size() < params.roiProfiles.size()) {
@@ -1107,16 +1207,9 @@ bool QtHoleMeasureWidget::mapTemplateToImage()
         m_imagePoints.push_back(hm::ImagePoint{ x, y });
     }
 
-    if (m_templatePoints.size() > 1 && m_imagePoints.size() > 1) {
-        const double worldDx = std::fabs(m_templatePoints[1].worldX - m_templatePoints[0].worldX);
-        const double worldDy = std::fabs(m_templatePoints[1].worldY - m_templatePoints[0].worldY);
-        const double imageDx = m_imagePoints[1].x - m_imagePoints[0].x;
-        const double imageDy = m_imagePoints[1].y - m_imagePoints[0].y;
-        const double worldDist = std::sqrt(worldDx * worldDx + worldDy * worldDy);
-        const double imageDist = std::sqrt(imageDx * imageDx + imageDy * imageDy);
-        if (worldDist > 0 && imageDist > 0) {
-            m_micronPerPixel->setValue(worldDist / imageDist);
-        }
+    const double scale = hm::estimateMicronPerPixel(m_templatePoints, m_imagePoints, m_micronPerPixel->value());
+    if (scale > 0.0) {
+        m_micronPerPixel->setValue(scale);
     }
     return true;
 }
@@ -1140,9 +1233,7 @@ void QtHoleMeasureWidget::rebuildArray()
         }
     }
 
-    const hm::ExportOrder order = m_sortOrder->currentIndex() == 0
-        ? hm::ExportOrder::FirstColumnTopDown
-        : hm::ExportOrder::LastColumnTopDown;
+    const hm::ExportOrder order = currentExportOrder();
     hm::sortTemplateImagePairs(m_templatePoints, m_imagePoints, order);
 
     const auto shifted = hm::applyArrayOffset(m_imagePoints, readOffset());
@@ -1278,21 +1369,24 @@ void QtHoleMeasureWidget::populateColumnProfileTable()
         return;
     }
 
-    std::set<std::string> columnSet;
+    const hm::ExportOrder order = currentExportOrder();
+    const bool rowMode = m_orderMajor && m_orderMajor->currentData().toInt() == 0;
+    m_columnProfileTable->setHorizontalHeaderLabels(QStringList()
+        << (rowMode ? "Row" : "Col") << "P1" << "P2" << "P3" << "P4");
+
+    std::set<std::string> labelSet;
     for (const auto& hole : m_holes) {
-        columnSet.insert(hole.point.columnLabel);
+        labelSet.insert(profileGroupLabelForHole(hole));
     }
-    std::vector<std::string> columns(columnSet.begin(), columnSet.end());
-    columns = hm::sortColumnLabelsForOrder(columns, m_sortOrder->currentIndex() == 0
-        ? hm::ExportOrder::FirstColumnTopDown
-        : hm::ExportOrder::LastColumnTopDown);
+    std::vector<std::string> labels(labelSet.begin(), labelSet.end());
+    labels = hm::sortProfileLabelsForOrder(labels, order);
 
     const QSignalBlocker blocker(m_columnProfileTable);
-    m_columnProfileTable->setRowCount(static_cast<int>(columns.size()));
-    for (int row = 0; row < static_cast<int>(columns.size()); ++row) {
-        const std::string& column = columns[row];
-        const int profileIndex = columnProfileIndex(column);
-        m_columnProfileTable->setItem(row, 0, item(QString::fromStdString(column)));
+    m_columnProfileTable->setRowCount(static_cast<int>(labels.size()));
+    for (int row = 0; row < static_cast<int>(labels.size()); ++row) {
+        const std::string& label = labels[row];
+        const int profileIndex = columnProfileIndex(label);
+        m_columnProfileTable->setItem(row, 0, item(QString::fromStdString(label)));
         for (int profile = 0; profile < static_cast<int>(m_roiProfiles.size()); ++profile) {
             m_columnProfileTable->setItem(row, profile + 1, checkItem(profile == profileIndex));
         }
@@ -1307,26 +1401,28 @@ void QtHoleMeasureWidget::populateProfileList()
 
     const int selected = selectedProfileIndex();
     const QSignalBlocker blocker(m_profileList);
+    const hm::ExportOrder order = currentExportOrder();
+    const bool rowMode = m_orderMajor && m_orderMajor->currentData().toInt() == 0;
+    m_profileList->setHorizontalHeaderLabels(QStringList()
+        << "Profile" << (rowMode ? "Rows" : "Columns") << "Master ID");
     m_profileList->setRowCount(static_cast<int>(m_roiProfiles.size()));
     for (int profile = 0; profile < static_cast<int>(m_roiProfiles.size()); ++profile) {
-        std::set<std::string> columnSet;
+        std::set<std::string> labelSet;
         for (const auto& hole : m_holes) {
             if (hole.roiProfileIndex == profile) {
-                columnSet.insert(hole.point.columnLabel);
+                labelSet.insert(profileGroupLabelForHole(hole));
             }
         }
-        std::vector<std::string> sortedColumns(columnSet.begin(), columnSet.end());
-        sortedColumns = hm::sortColumnLabelsForOrder(sortedColumns, m_sortOrder->currentIndex() == 0
-            ? hm::ExportOrder::FirstColumnTopDown
-            : hm::ExportOrder::LastColumnTopDown);
-        QStringList columns;
-        for (const auto& column : sortedColumns) {
-            columns << QString::fromStdString(column);
+        std::vector<std::string> sortedLabels(labelSet.begin(), labelSet.end());
+        sortedLabels = hm::sortProfileLabelsForOrder(sortedLabels, order);
+        QStringList labels;
+        for (const auto& label : sortedLabels) {
+            labels << QString::fromStdString(label);
         }
 
         const int masterId = m_roiProfiles[profile].masterTemplateId;
         m_profileList->setItem(profile, 0, item(QString("Profile %1").arg(profile + 1)));
-        m_profileList->setItem(profile, 1, item(columns.join(",")));
+        m_profileList->setItem(profile, 1, item(labels.join(",")));
         m_profileList->setItem(profile, 2, item(masterId > 0 ? QString::number(masterId) : "-"));
     }
     if (!m_roiProfiles.empty()) {
@@ -1435,8 +1531,13 @@ void QtHoleMeasureWidget::columnProfileItemChanged(QTableWidgetItem* changedItem
         return;
     }
 
-    const std::string columnLabel = columnItem->text().toStdString();
-    setColumnProfileIndex(columnLabel, profileIndex);
+    const std::string groupLabel = columnItem->text().toStdString();
+    std::map<int, std::vector<hm::HoleRoi> > currentRoisByTemplateId;
+    for (const auto& hole : m_holes) {
+        currentRoisByTemplateId[hole.point.id] = hole.rois;
+    }
+
+    setColumnProfileIndex(groupLabel, profileIndex);
     {
         const QSignalBlocker blocker(m_columnProfileTable);
         for (int col = 1; col < m_columnProfileTable->columnCount(); ++col) {
@@ -1446,23 +1547,60 @@ void QtHoleMeasureWidget::columnProfileItemChanged(QTableWidgetItem* changedItem
             }
         }
     }
-    for (auto& profile : m_roiProfiles) {
-        profile.masterTemplateId = 0;
-        profile.masterRois.clear();
-    }
     for (auto& hole : m_holes) {
         hole.roiProfileIndex = profileIndexForHole(hole);
-        hole.roiAdjustments.assign(hole.rois.size(), hm::RoiAdjustment{});
     }
     ensureProfileMasters();
+    for (auto& profile : m_roiProfiles) {
+        if (profile.masterTemplateId <= 0 || profile.masterRois.empty()) {
+            continue;
+        }
+        for (const auto& hole : m_holes) {
+            if (hole.point.id != profile.masterTemplateId) {
+                continue;
+            }
+            const auto it = currentRoisByTemplateId.find(profile.masterTemplateId);
+            if (it != currentRoisByTemplateId.end()) {
+                profile.masterCenter = hole.shiftedCenter;
+                profile.masterRois = it->second;
+                for (auto& roi : profile.masterRois) {
+                    roi.templateId = profile.masterTemplateId;
+                }
+            }
+            break;
+        }
+    }
+    ensureRoiAdjustments();
+    for (auto& hole : m_holes) {
+        const int holeProfileIndex = hole.roiProfileIndex;
+        if (holeProfileIndex < 0 || holeProfileIndex >= static_cast<int>(m_roiProfiles.size())) {
+            continue;
+        }
+        const auto savedIt = currentRoisByTemplateId.find(hole.point.id);
+        if (savedIt == currentRoisByTemplateId.end()) {
+            continue;
+        }
+        const auto& profile = m_roiProfiles[holeProfileIndex];
+        if (profile.masterRois.empty()) {
+            continue;
+        }
+        hole.roiAdjustments = hm::makeRoiAdjustmentsForCurrentRois(
+            profile.masterRois,
+            profile.masterCenter,
+            hole.shiftedCenter,
+            hole.point.id,
+            savedIt->second);
+    }
     rebuildRoisFromMaster();
     populateHoleTable();
     populateProfileList();
     populateRoiTable(m_holeTable->currentRow());
     clearMeasurements();
     displayImage();
-    log(QString("Column %1 assigned to Profile %2.")
-        .arg(QString::fromStdString(columnLabel))
+    const bool rowMode = m_orderMajor && m_orderMajor->currentData().toInt() == 0;
+    log(QString("%1 %2 assigned to Profile %3.")
+        .arg(rowMode ? "Row" : "Column")
+        .arg(QString::fromStdString(groupLabel))
         .arg(profileIndex + 1)
     );
 }
@@ -1748,8 +1886,13 @@ void QtHoleMeasureWidget::saveRoiConfig()
 void QtHoleMeasureWidget::applyLoadedRois(const std::vector<hm::HoleRoi>& rois)
 {
     std::map<std::pair<int, int>, hm::HoleRoi> byKey;
+    std::vector<int> preferredMasterIds;
     for (const auto& roi : rois) {
         byKey[std::make_pair(roi.templateId, static_cast<int>(roi.side))] = roi;
+        if (std::find(preferredMasterIds.begin(), preferredMasterIds.end(), roi.templateId)
+            == preferredMasterIds.end()) {
+            preferredMasterIds.push_back(roi.templateId);
+        }
     }
 
     if (m_holes.empty()) {
@@ -1764,14 +1907,21 @@ void QtHoleMeasureWidget::applyLoadedRois(const std::vector<hm::HoleRoi>& rois)
         profile.masterRois.clear();
     }
     ensureRoiAdjustments();
+    std::vector<hm::TemplatePoint> points;
+    std::vector<int> profileIndexes;
+    points.reserve(m_holes.size());
+    profileIndexes.reserve(m_holes.size());
+    for (const auto& hole : m_holes) {
+        points.push_back(hole.point);
+        profileIndexes.push_back(hole.roiProfileIndex);
+    }
     for (auto& profile : m_roiProfiles) {
-        int masterHoleIndex = -1;
-        for (int holeIndex = 0; holeIndex < static_cast<int>(m_holes.size()); ++holeIndex) {
-            if (m_holes[holeIndex].roiProfileIndex == profile.range.profileIndex) {
-                masterHoleIndex = holeIndex;
-                break;
-            }
-        }
+        const int masterHoleIndex = hm::selectStableProfileMasterIndex(
+            points,
+            profileIndexes,
+            profile.range.profileIndex,
+            profile.masterTemplateId,
+            preferredMasterIds);
         if (masterHoleIndex < 0) {
             continue;
         }
@@ -1858,6 +2008,23 @@ void QtHoleMeasureWidget::displayImage()
         }
     }
 
+    const std::string selectedGroup = selectedProfileGroupLabel();
+    if (!selectedGroup.empty()) {
+        std::vector<hm::HoleRoi> groupRois;
+        for (const auto& hole : m_holes) {
+            if (profileGroupLabelForHole(hole) == selectedGroup) {
+                groupRois.insert(groupRois.end(), hole.rois.begin(), hole.rois.end());
+            }
+        }
+        const hm::ImageRect groupBounds = hm::makeRoiGroupBounds(groupRois, 18.0);
+        if (groupBounds.ok) {
+            ILRectRegionPtr groupHighlight = LRectRegion::Create();
+            groupHighlight->SetPlacement(groupBounds.left, groupBounds.top, groupBounds.width, groupBounds.height);
+            ILDrawable::Cast(groupHighlight)->SetPen(LPVPenSolid, 5, LPVYellow);
+            m_displayCtrl->AddObject(*groupHighlight, 0);
+        }
+    }
+
     if (selectedHole >= 0 && selectedHole < static_cast<int>(m_holes.size())) {
         const hm::ImageRect bounds = hm::makeRoiGroupBounds(m_holes[selectedHole].rois, 12.0);
         if (bounds.ok) {
@@ -1894,6 +2061,27 @@ void QtHoleMeasureWidget::displayImage()
                 m_displayCtrl->AddObject(*centerLine, 0);
             }
         }
+    }
+
+    std::vector<hm::TemplatePoint> labelPoints;
+    std::vector<std::vector<hm::HoleRoi> > labelRoiGroups;
+    labelPoints.reserve(m_holes.size());
+    labelRoiGroups.reserve(m_holes.size());
+    for (const auto& hole : m_holes) {
+        labelPoints.push_back(hole.point);
+        labelRoiGroups.push_back(hole.rois);
+    }
+    const auto labels = hm::makeHoleLabels(labelPoints, labelRoiGroups);
+    for (const auto& label : labels) {
+        ILTextPtr text(__uuidof(LText));
+        if (!text) {
+            continue;
+        }
+        text->PutText(_bstr_t(widen(label.text).c_str()));
+        text->PutPosX(displayInt(label.position.x));
+        text->PutPosY(displayInt(label.position.y));
+        text->PutAlignment(LPVAlignCenter);
+        m_displayCtrl->AddObject(text, 0);
     }
     m_displayCtrl->Refresh();
 }

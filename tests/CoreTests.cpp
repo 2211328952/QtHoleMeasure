@@ -74,14 +74,46 @@ void testSortOrders()
         { 4, "B", "2", 200.0,  5.0, 0, true, 3 },
     };
 
-    auto first = hm::sortForExport(points, hm::ExportOrder::FirstColumnTopDown);
-    require(first.size() == 4, "first-column sort count");
-    require(first[0].id == 1 && first[1].id == 2 && first[2].id == 3 && first[3].id == 4,
-        "first-column sort should walk each column top-down");
+    auto rowTopLeft = hm::sortForExport(points, hm::ExportOrder::RowFirstTopLeft);
+    require(rowTopLeft.size() == 4, "row-first sort count");
+    require(rowTopLeft[0].id == 1 && rowTopLeft[1].id == 3
+        && rowTopLeft[2].id == 2 && rowTopLeft[3].id == 4,
+        "row-first top-left should walk columns across each row");
 
-    auto last = hm::sortForExport(points, hm::ExportOrder::LastColumnTopDown);
-    require(last[0].id == 3 && last[1].id == 4 && last[2].id == 1 && last[3].id == 2,
-        "last-column sort should reverse columns and walk each top-down");
+    auto rowBottomLeft = hm::sortForExport(points, hm::ExportOrder::RowFirstBottomLeft);
+    require(rowBottomLeft[0].id == 2 && rowBottomLeft[1].id == 4
+        && rowBottomLeft[2].id == 1 && rowBottomLeft[3].id == 3,
+        "row-first bottom-left should start from bottom row");
+
+    auto rowBottomRight = hm::sortForExport(points, hm::ExportOrder::RowFirstBottomRight);
+    require(rowBottomRight[0].id == 4 && rowBottomRight[1].id == 2
+        && rowBottomRight[2].id == 3 && rowBottomRight[3].id == 1,
+        "row-first bottom-right should reverse rows and columns");
+
+    auto rowTopRight = hm::sortForExport(points, hm::ExportOrder::RowFirstTopRight);
+    require(rowTopRight[0].id == 3 && rowTopRight[1].id == 1
+        && rowTopRight[2].id == 4 && rowTopRight[3].id == 2,
+        "row-first top-right should start from right column");
+
+    auto columnTopLeft = hm::sortForExport(points, hm::ExportOrder::ColumnFirstTopLeft);
+    require(columnTopLeft[0].id == 1 && columnTopLeft[1].id == 2
+        && columnTopLeft[2].id == 3 && columnTopLeft[3].id == 4,
+        "column-first top-left should walk rows down each column");
+
+    auto columnBottomLeft = hm::sortForExport(points, hm::ExportOrder::ColumnFirstBottomLeft);
+    require(columnBottomLeft[0].id == 2 && columnBottomLeft[1].id == 1
+        && columnBottomLeft[2].id == 4 && columnBottomLeft[3].id == 3,
+        "column-first bottom-left should reverse rows inside each column");
+
+    auto columnBottomRight = hm::sortForExport(points, hm::ExportOrder::ColumnFirstBottomRight);
+    require(columnBottomRight[0].id == 4 && columnBottomRight[1].id == 3
+        && columnBottomRight[2].id == 2 && columnBottomRight[3].id == 1,
+        "column-first bottom-right should start from bottom-right");
+
+    auto columnTopRight = hm::sortForExport(points, hm::ExportOrder::ColumnFirstTopRight);
+    require(columnTopRight[0].id == 3 && columnTopRight[1].id == 4
+        && columnTopRight[2].id == 1 && columnTopRight[3].id == 2,
+        "column-first top-right should start from right column");
 }
 
 void testSortTemplateImagePairs()
@@ -99,13 +131,13 @@ void testSortTemplateImagePairs()
         { 104.0, 304.0 },
     };
 
-    hm::sortTemplateImagePairs(points, imagePoints, hm::ExportOrder::FirstColumnTopDown);
+    hm::sortTemplateImagePairs(points, imagePoints, hm::ExportOrder::ColumnFirstTopLeft);
     require(points[0].id == 1 && points[1].id == 2 && points[2].id == 3 && points[3].id == 4,
         "template points should be sorted before measurement");
     require(nearlyEqual(imagePoints[0].x, 101.0) && nearlyEqual(imagePoints[3].x, 104.0),
         "image points should stay paired with sorted template points");
 
-    hm::sortTemplateImagePairs(points, imagePoints, hm::ExportOrder::LastColumnTopDown);
+    hm::sortTemplateImagePairs(points, imagePoints, hm::ExportOrder::ColumnFirstTopRight);
     require(points[0].id == 3 && points[1].id == 4 && points[2].id == 1 && points[3].id == 2,
         "template points should support reverse column measurement order");
     require(nearlyEqual(imagePoints[0].x, 103.0) && nearlyEqual(imagePoints[3].x, 102.0),
@@ -116,13 +148,57 @@ void testSortColumnLabelsForOrder()
 {
     std::vector<std::string> columns = { "1", "10", "2" };
 
-    auto first = hm::sortColumnLabelsForOrder(columns, hm::ExportOrder::FirstColumnTopDown);
+    auto first = hm::sortColumnLabelsForOrder(columns, hm::ExportOrder::RowFirstTopLeft);
     require(first[0] == "1" && first[1] == "2" && first[2] == "10",
-        "column labels should sort left to right for first-column order");
+        "column labels should sort left to right for left-start order");
 
-    auto last = hm::sortColumnLabelsForOrder(columns, hm::ExportOrder::LastColumnTopDown);
+    auto last = hm::sortColumnLabelsForOrder(columns, hm::ExportOrder::ColumnFirstTopRight);
     require(last[0] == "10" && last[1] == "2" && last[2] == "1",
-        "column labels should sort right to left for last-column order");
+        "column labels should sort right to left for right-start order");
+}
+
+void testProfileLabelsFollowOrderMajor()
+{
+    hm::TemplatePoint point;
+    point.rowLabel = "B";
+    point.columnLabel = "10";
+
+    require(hm::profileLabelForOrder(point, hm::ExportOrder::ColumnFirstTopLeft) == "10",
+        "column-first profile label should use column");
+    require(hm::profileLabelForOrder(point, hm::ExportOrder::RowFirstTopLeft) == "B",
+        "row-first profile label should use row");
+
+    std::vector<std::string> labels = { "A", "K", "B" };
+    auto topFirst = hm::sortProfileLabelsForOrder(labels, hm::ExportOrder::RowFirstTopLeft);
+    require(topFirst[0] == "A" && topFirst[1] == "B" && topFirst[2] == "K",
+        "row labels should sort top to bottom for top-start order");
+
+    auto bottomFirst = hm::sortProfileLabelsForOrder(labels, hm::ExportOrder::RowFirstBottomLeft);
+    require(bottomFirst[0] == "K" && bottomFirst[1] == "B" && bottomFirst[2] == "A",
+        "row labels should sort bottom to top for bottom-start order");
+}
+
+void testMicronPerPixelEstimateDoesNotDependOnCurrentOrder()
+{
+    std::vector<hm::TemplatePoint> points = {
+        { 1, "A", "1", 0.0, 0.0, 0, true, 0 },
+        { 2, "B", "1", 0.0, 100.0, 0, true, 1 },
+        { 3, "A", "2", 100.0, 0.0, 0, true, 2 },
+        { 4, "B", "2", 100.0, 100.0, 0, true, 3 },
+    };
+    std::vector<hm::ImagePoint> imagePoints = {
+        { 0.0, 0.0 },
+        { 0.0, 50.0 },
+        { 50.0, 0.0 },
+        { 50.0, 50.0 },
+    };
+
+    const double first = hm::estimateMicronPerPixel(points, imagePoints, 1.0);
+    hm::sortTemplateImagePairs(points, imagePoints, hm::ExportOrder::RowFirstTopRight);
+    const double reordered = hm::estimateMicronPerPixel(points, imagePoints, 1.0);
+
+    require(nearlyEqual(first, 2.0), "micron estimate should use nearest template spacing");
+    require(nearlyEqual(reordered, 2.0), "micron estimate should not depend on sort order");
 }
 
 void testOffsetTransform()
@@ -374,6 +450,97 @@ void testCenterCrossLinesUseImageCenter()
     require(nearlyEqual(lines[1].end.y, 86.0), "center cross vertical end y");
 }
 
+void testHoleIdLabelsFollowCurrentRoiBounds()
+{
+    std::vector<hm::TemplatePoint> points = {
+        { 10, "A", "1", 0.0, 0.0, 0, true, 0 },
+        { 11, "A", "2", 0.0, 0.0, 0, true, 0 }
+    };
+
+    hm::HoleRoi firstTop;
+    firstTop.center = hm::ImagePoint{ 300.0, 190.0 };
+    firstTop.width = 40.0;
+    firstTop.height = 10.0;
+    firstTop.angleDeg = 0.0;
+    hm::HoleRoi firstBottom = firstTop;
+    firstBottom.center = hm::ImagePoint{ 300.0, 210.0 };
+
+    hm::HoleRoi secondLeft;
+    secondLeft.center = hm::ImagePoint{ 420.0, 280.0 };
+    secondLeft.width = 10.0;
+    secondLeft.height = 40.0;
+    secondLeft.angleDeg = 90.0;
+    hm::HoleRoi secondRight = secondLeft;
+    secondRight.center = hm::ImagePoint{ 460.0, 280.0 };
+
+    std::vector<std::vector<hm::HoleRoi> > roiGroups = {
+        { firstTop, firstBottom },
+        { secondLeft, secondRight }
+    };
+
+    const std::vector<hm::HoleLabel> labels = hm::makeHoleLabels(points, roiGroups);
+
+    require(labels.size() == 2, "hole labels should only include ids");
+    require(labels[0].kind == hm::HoleLabelKind::Id && labels[0].text == "1", "first id label text");
+    require(nearlyEqual(labels[0].position.x, 300.0), "first id label x follows roi bounds");
+    require(nearlyEqual(labels[0].position.y, 200.0), "first id label y follows roi bounds");
+    require(labels[1].kind == hm::HoleLabelKind::Id && labels[1].text == "2", "second id label text");
+    require(nearlyEqual(labels[1].position.x, 440.0), "second id label x follows roi bounds");
+    require(nearlyEqual(labels[1].position.y, 280.0), "second id label y follows roi bounds");
+}
+
+void testStableProfileMasterPrefersExistingOrLoadedRoiMaster()
+{
+    std::vector<hm::TemplatePoint> points = {
+        { 1, "A", "1", 0.0, 0.0, 0, true, 0 },
+        { 40, "A", "40", 0.0, 0.0, 0, true, 0 },
+        { 80, "B", "40", 0.0, 0.0, 0, true, 0 },
+    };
+    std::vector<int> profiles = { 0, 0, 0 };
+
+    require(hm::selectStableProfileMasterIndex(points, profiles, 0, 40, {}) == 1,
+        "existing profile master should survive sorting changes");
+    require(hm::selectStableProfileMasterIndex(points, profiles, 0, 0, std::vector<int>{ 80, 40 }) == 2,
+        "loaded roi master ids should be preferred over first sorted hole");
+    require(hm::selectStableProfileMasterIndex(points, profiles, 0, 0, {}) == 0,
+        "profile without saved master falls back to first sorted hole");
+}
+
+void testRoiAdjustmentsPreserveCurrentGeometryAfterRegroup()
+{
+    hm::GaugeDefaults defaults;
+    defaults.edgeOffsetPx = 20.0;
+    defaults.roiLengthPx = 50.0;
+    defaults.roiWidthPx = 12.0;
+    const auto masterRois = hm::makeDefaultHoleRois(hm::ImagePoint{ 100.0, 200.0 }, 10, defaults);
+    auto currentRois = hm::rebaseMasterRois(
+        masterRois,
+        hm::ImagePoint{ 100.0, 200.0 },
+        hm::ImagePoint{ 300.0, 500.0 },
+        20);
+    currentRois[0].center.x += 7.0;
+    currentRois[0].center.y -= 3.0;
+    currentRois[0].width += 4.0;
+
+    const auto adjustments = hm::makeRoiAdjustmentsForCurrentRois(
+        masterRois,
+        hm::ImagePoint{ 100.0, 200.0 },
+        hm::ImagePoint{ 300.0, 500.0 },
+        20,
+        currentRois);
+
+    require(adjustments.size() == currentRois.size(), "regroup adjustment count");
+    const auto rebuilt = hm::makeDerivedHoleRoi(
+        masterRois[0],
+        hm::ImagePoint{ 100.0, 200.0 },
+        hm::ImagePoint{ 300.0, 500.0 },
+        20,
+        adjustments[0]);
+    require(nearlyEqual(rebuilt.center.x, currentRois[0].center.x), "regroup adjustment preserves roi x");
+    require(nearlyEqual(rebuilt.center.y, currentRois[0].center.y), "regroup adjustment preserves roi y");
+    require(nearlyEqual(rebuilt.width, currentRois[0].width), "regroup adjustment preserves roi width");
+}
+
 void testLineCandidateSelectionRejectsSkewedHighScoreLine()
 {
     hm::HoleRoi roi;
@@ -467,7 +634,7 @@ void testAppParamsSaveLoad()
     params.offsetY = 34.25;
     params.angleDeg = 91.5;
     params.micronPerPixel = 2.75;
-    params.pointOrder = hm::ExportOrder::LastColumnTopDown;
+    params.pointOrder = hm::ExportOrder::RowFirstBottomRight;
     params.lineFindMethod = hm::LineFindMethod::LineDetector;
     params.gauge.edgeOffsetPx = 31.0;
     params.gauge.roiLengthPx = 42.0;
@@ -498,7 +665,7 @@ void testAppParamsSaveLoad()
     require(nearlyEqual(loaded.offsetY, 34.25), "app params offset y");
     require(nearlyEqual(loaded.angleDeg, 91.5), "app params angle");
     require(nearlyEqual(loaded.micronPerPixel, 2.75), "app params micron scale");
-    require(loaded.pointOrder == hm::ExportOrder::LastColumnTopDown, "app params point order");
+    require(loaded.pointOrder == hm::ExportOrder::RowFirstBottomRight, "app params point order");
     require(loaded.lineFindMethod == hm::LineFindMethod::LineDetector, "app params line find method");
     require(nearlyEqual(loaded.gauge.edgeOffsetPx, 31.0), "app params edge offset");
     require(nearlyEqual(loaded.gauge.roiLengthPx, 42.0), "app params roi length");
@@ -762,6 +929,8 @@ int main()
     testSortOrders();
     testSortTemplateImagePairs();
     testSortColumnLabelsForOrder();
+    testProfileLabelsFollowOrderMajor();
+    testMicronPerPixelEstimateDoesNotDependOnCurrentOrder();
     testOffsetTransform();
     testRoiGeneration();
     testRoiGroupBoundsContainsRotatedRois();
@@ -771,6 +940,9 @@ int main()
     testRoiMeasurementFailureStateFollowsSingleFailedLine();
     testGaugeLineKeepsDetectedSegment();
     testCenterCrossLinesUseImageCenter();
+    testHoleIdLabelsFollowCurrentRoiBounds();
+    testStableProfileMasterPrefersExistingOrLoadedRoiMaster();
+    testRoiAdjustmentsPreserveCurrentGeometryAfterRegroup();
     testLineCandidateSelectionRejectsSkewedHighScoreLine();
     testLineAngleDifferenceTreatsOppositeDirectionsAsSameLine();
     testRoiConfigSaveLoad();

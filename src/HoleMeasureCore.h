@@ -38,8 +38,16 @@ struct TemplatePoint
 
 enum class ExportOrder
 {
-    FirstColumnTopDown,
-    LastColumnTopDown
+    ColumnFirstTopLeft = 0,
+    ColumnFirstTopRight = 1,
+    RowFirstTopLeft = 2,
+    RowFirstBottomLeft = 3,
+    RowFirstBottomRight = 4,
+    RowFirstTopRight = 5,
+    ColumnFirstBottomLeft = 6,
+    ColumnFirstBottomRight = 7,
+    FirstColumnTopDown = ColumnFirstTopLeft,
+    LastColumnTopDown = ColumnFirstTopRight
 };
 
 enum class LineFindMethod
@@ -186,10 +194,26 @@ struct HoleMeasurement
     GaugeLine right;
 };
 
+enum class HoleLabelKind
+{
+    Id
+};
+
+struct HoleLabel
+{
+    HoleLabelKind kind = HoleLabelKind::Id;
+    std::string text;
+    ImagePoint position;
+};
+
 std::vector<TemplatePoint> loadTemplateCsv(const std::string& path);
 std::vector<TemplatePoint> sortForExport(const std::vector<TemplatePoint>& points, ExportOrder order);
 std::vector<std::string> sortColumnLabelsForOrder(const std::vector<std::string>& columns, ExportOrder order);
+std::string profileLabelForOrder(const TemplatePoint& point, ExportOrder order);
+std::vector<std::string> sortProfileLabelsForOrder(const std::vector<std::string>& labels, ExportOrder order);
 void sortTemplateImagePairs(std::vector<TemplatePoint>& points, std::vector<ImagePoint>& imagePoints, ExportOrder order);
+double estimateMicronPerPixel(const std::vector<TemplatePoint>& points,
+    const std::vector<ImagePoint>& imagePoints, double fallback);
 std::vector<ImagePoint> applyArrayOffset(const std::vector<ImagePoint>& points, const ArrayOffset& offset);
 std::vector<HoleRoi> makeDefaultHoleRois(const ImagePoint& center, int templateId, const GaugeDefaults& defaults);
 ImageRect makeRoiGroupBounds(const std::vector<HoleRoi>& rois, double paddingPx);
@@ -199,9 +223,17 @@ std::vector<HoleRoi> rebaseMasterRois(const std::vector<HoleRoi>& masterRois,
     const ImagePoint& oldMasterCenter, const ImagePoint& newMasterCenter, int newMasterTemplateId);
 RoiAdjustment makeRoiAdjustment(const HoleRoi& baseRoi, const HoleRoi& editedRoi);
 RoiAdjustment withoutGaugeParamOverride(const RoiAdjustment& adjustment);
+std::vector<RoiAdjustment> makeRoiAdjustmentsForCurrentRois(const std::vector<HoleRoi>& masterRois,
+    const ImagePoint& masterCenter, const ImagePoint& targetCenter, int targetTemplateId,
+    const std::vector<HoleRoi>& currentRois);
 int selectRoiProfileIndex(const std::vector<RoiProfileRange>& profiles, const std::string& columnLabel);
 int selectRoiProfileIndex(const std::vector<RoiColumnProfile>& profiles, const std::string& columnLabel);
 std::vector<GaugeLine> makeCenterCrossLines(const ImagePoint& center, double radiusPx);
+std::vector<HoleLabel> makeHoleLabels(const std::vector<TemplatePoint>& points,
+    const std::vector<std::vector<HoleRoi> >& roiGroups);
+int selectStableProfileMasterIndex(const std::vector<TemplatePoint>& points,
+    const std::vector<int>& profileIndexes, int profileIndex, int currentMasterId,
+    const std::vector<int>& preferredMasterIds);
 HoleMeasurement makeMeasurement(const TemplatePoint& point, const ImagePoint& center, const GaugeLine& top,
     const GaugeLine& bottom, const GaugeLine& left, const GaugeLine& right, double micronPerPixel);
 bool isRoiMeasurementFailed(const HoleMeasurement& measurement, int roiIndex, bool measurementAvailable);

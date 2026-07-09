@@ -110,12 +110,15 @@ private:
     LPVCoreLib::ILRotRectRegionPtr makeRegion(const hm::HoleRoi& roi) const;
     hm::HoleRoi* selectedRoi();
     int selectedProfileIndex() const;
+    hm::ExportOrder currentExportOrder() const;
+    std::string profileGroupLabelForHole(const HoleState& hole) const;
+    std::string selectedProfileGroupLabel() const;
     int columnProfileIndex(const std::string& columnLabel) const;
     void setColumnProfileIndex(const std::string& columnLabel, int profileIndex);
     int profileIndexForHole(const HoleState& hole) const;
     int firstHoleIndexForProfile(int profileIndex) const;
     void selectFirstHoleInProfile(int profileIndex);
-    void ensureProfileMasters();
+    void ensureProfileMasters(const std::vector<int>& preferredMasterIds = std::vector<int>());
     hm::HoleRoi baseRoiForHole(int holeIndex, int roiIndex) const;
     void ensureRoiAdjustments();
     void rebuildRoisFromMaster();
@@ -144,7 +147,8 @@ private:
     QSpinBox* m_acceptScore = nullptr;
     QComboBox* m_defaultPolarity = nullptr;
     QComboBox* m_roiPolarity = nullptr;
-    QComboBox* m_sortOrder = nullptr;
+    QComboBox* m_orderMajor = nullptr;
+    QComboBox* m_startCorner = nullptr;
     QComboBox* m_lineFindMethod = nullptr;
     QLineEdit* m_searchId = nullptr;
     QTableWidget* m_columnProfileTable = nullptr;
