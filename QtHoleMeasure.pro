@@ -25,7 +25,7 @@ INCLUDEPATH += F:/Source/StoneWall/idl/GeneratedFiles \
 LIBS += -L$$PWD/lib/x64 \
     -LF:/Source/StoneWall/publish/lib/x64 \
     -luser32 -lgdi32 \
-    -llpvCore -llpvGeom -llpvCalib -llpvGauge -llpvLocate -llpvDisplay
+    -llpvCore -llpvGeom -llpvCalib -llpvGauge -llpvLocate -llpvDisplay -llpvIB
 
 win32 {
     CONFIG(debug, debug|release): LPV_COPY_DEST = $$OUT_PWD/debug

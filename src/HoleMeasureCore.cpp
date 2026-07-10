@@ -259,6 +259,14 @@ bool measuredCenterFromLines(const GaugeLine& top, const GaugeLine& bottom,
     return true;
 }
 
+void setInvalidTaskAlignment(HoleMeasurement& measurement)
+{
+    measurement.taskAlignedWorldX = InvalidMeasurementValue;
+    measurement.taskAlignedWorldY = InvalidMeasurementValue;
+    measurement.taskDeltaX = InvalidMeasurementValue;
+    measurement.taskDeltaY = InvalidMeasurementValue;
+}
+
 void setInvalidAlignment(HoleMeasurement& measurement)
 {
     measurement.measuredWorldX = InvalidMeasurementValue;
@@ -267,6 +275,7 @@ void setInvalidAlignment(HoleMeasurement& measurement)
     measurement.alignedWorldY = InvalidMeasurementValue;
     measurement.deltaX = InvalidMeasurementValue;
     measurement.deltaY = InvalidMeasurementValue;
+    setInvalidTaskAlignment(measurement);
 }
 }
 
@@ -852,11 +861,35 @@ std::vector<HoleMeasurement> applyMeasurementOffsets(const std::vector<HoleMeasu
     return compensated;
 }
 
+void applyTaskAlignmentOffsets(std::vector<HoleMeasurement>& measurements, const TaskAlignmentBasis& basis)
+{
+    const double angleRad = basis.templateAngleRad - basis.taskAngleRad;
+    const double c = std::cos(angleRad);
+    const double s = std::sin(angleRad);
+
+    for (auto& measurement : measurements) {
+        if (!measurement.ok
+            || measurement.measuredWorldX == InvalidMeasurementValue
+            || measurement.measuredWorldY == InvalidMeasurementValue) {
+            setInvalidTaskAlignment(measurement);
+            continue;
+        }
+
+        const double localX = measurement.measuredWorldX - basis.taskCenterWorldX;
+        const double localY = measurement.measuredWorldY - basis.taskCenterWorldY;
+        measurement.taskAlignedWorldX = basis.templateCenterWorldX + localX * c - localY * s;
+        measurement.taskAlignedWorldY = basis.templateCenterWorldY + localX * s + localY * c;
+        measurement.taskDeltaX = measurement.taskAlignedWorldX - measurement.templateWorldX;
+        measurement.taskDeltaY = measurement.templateWorldY - measurement.taskAlignedWorldY;
+    }
+}
+
 void saveMeasurementsCsv(const std::string& path, const std::vector<HoleMeasurement>& measurements)
 {
     std::ofstream file(path.c_str(), std::ios::trunc);
     file << "ID,Row Label,Column Label,CenterX,CenterY,HeightPx,WidthPx,HeightMicron,WidthMicron,OK,"
-         << "MeasuredWorldX,MeasuredWorldY,AlignedWorldX,AlignedWorldY,DeltaX,DeltaY\n";
+         << "MeasuredWorldX,MeasuredWorldY,AlignedWorldX,AlignedWorldY,DeltaX,DeltaY,"
+         << "TaskAlignedWorldX,TaskAlignedWorldY,TaskDeltaX,TaskDeltaY\n";
     for (const auto& item : measurements) {
         file << item.templateId << ','
              << item.rowLabel << ','
@@ -873,7 +906,11 @@ void saveMeasurementsCsv(const std::string& path, const std::vector<HoleMeasurem
              << item.alignedWorldX << ','
              << item.alignedWorldY << ','
              << item.deltaX << ','
-             << item.deltaY << '\n';
+             << item.deltaY << ','
+             << item.taskAlignedWorldX << ','
+             << item.taskAlignedWorldY << ','
+             << item.taskDeltaX << ','
+             << item.taskDeltaY << '\n';
     }
 }
 
@@ -953,6 +990,8 @@ void saveAppParams(const std::string& path, const AppParams& params)
          << "MicronPerPixel=" << params.micronPerPixel << '\n'
          << "PointOrder=" << static_cast<int>(params.pointOrder) << '\n'
          << "LineFindMethod=" << static_cast<int>(params.lineFindMethod) << '\n'
+         << "TaskPath=" << params.taskPath << '\n'
+         << "IBPath=" << params.ibPath << '\n'
          << "EdgeOffsetPx=" << params.gauge.edgeOffsetPx << '\n'
          << "RoiLengthPx=" << params.gauge.roiLengthPx << '\n'
          << "RoiWidthPx=" << params.gauge.roiWidthPx << '\n'
@@ -1008,6 +1047,10 @@ bool loadAppParams(const std::string& path, AppParams& params)
         const auto it = values.find(key);
         return it == values.end() ? fallback : std::stoi(it->second);
     };
+    auto getString = [&](const char* key, const std::string& fallback) {
+        const auto it = values.find(key);
+        return it == values.end() ? fallback : it->second;
+    };
 
     params.offsetX = getDouble("OffsetX", params.offsetX);
     params.offsetY = getDouble("OffsetY", params.offsetY);
@@ -1017,6 +1060,8 @@ bool loadAppParams(const std::string& path, AppParams& params)
     params.lineFindMethod = getInt("LineFindMethod", static_cast<int>(params.lineFindMethod)) == 1
         ? LineFindMethod::LineDetector
         : LineFindMethod::LineGauge;
+    params.taskPath = getString("TaskPath", params.taskPath);
+    params.ibPath = getString("IBPath", params.ibPath);
     params.gauge.edgeOffsetPx = getDouble("EdgeOffsetPx", params.gauge.edgeOffsetPx);
     params.gauge.roiLengthPx = getDouble("RoiLengthPx", params.gauge.roiLengthPx);
     params.gauge.roiWidthPx = getDouble("RoiWidthPx", params.gauge.roiWidthPx);

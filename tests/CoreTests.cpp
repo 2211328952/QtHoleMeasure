@@ -305,9 +305,9 @@ void testMeasurementAndSave()
     std::string row;
     std::getline(file, header);
     std::getline(file, row);
-    require(header == "ID,Row Label,Column Label,CenterX,CenterY,HeightPx,WidthPx,HeightMicron,WidthMicron,OK,MeasuredWorldX,MeasuredWorldY,AlignedWorldX,AlignedWorldY,DeltaX,DeltaY",
+    require(header == "ID,Row Label,Column Label,CenterX,CenterY,HeightPx,WidthPx,HeightMicron,WidthMicron,OK,MeasuredWorldX,MeasuredWorldY,AlignedWorldX,AlignedWorldY,DeltaX,DeltaY,TaskAlignedWorldX,TaskAlignedWorldY,TaskDeltaX,TaskDeltaY",
         "measurement csv header");
-    require(row.find("12,C,4,50,60,50,40,124,102,1,-9999,-9999,-9999,-9999,-9999,-9999") == 0,
+    require(row.find("12,C,4,50,60,50,40,124,102,1,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999") == 0,
         "measurement csv row");
 }
 
@@ -370,11 +370,49 @@ void testAlignmentCsvFieldsAndFailureSentinel()
     std::getline(file, secondRow);
     std::getline(file, failedRow);
 
-    require(header == "ID,Row Label,Column Label,CenterX,CenterY,HeightPx,WidthPx,HeightMicron,WidthMicron,OK,MeasuredWorldX,MeasuredWorldY,AlignedWorldX,AlignedWorldY,DeltaX,DeltaY",
+    require(header == "ID,Row Label,Column Label,CenterX,CenterY,HeightPx,WidthPx,HeightMicron,WidthMicron,OK,MeasuredWorldX,MeasuredWorldY,AlignedWorldX,AlignedWorldY,DeltaX,DeltaY,TaskAlignedWorldX,TaskAlignedWorldY,TaskDeltaX,TaskDeltaY",
         "alignment csv header");
-    require(firstRow.find("1,A,1,0,0,0,0,0,0,1,10,20,0.5,-0.25,0.5,-0.25") == 0, "first alignment csv row");
-    require(failedRow.find("3,C,1,0,0,0,0,0,0,0,-9999,-9999,-9999,-9999,-9999,-9999") == 0,
+    require(firstRow.find("1,A,1,0,0,0,0,0,0,1,10,20,0.5,-0.25,0.5,-0.25,-9999,-9999,-9999,-9999") == 0, "first alignment csv row");
+    require(failedRow.find("3,C,1,0,0,0,0,0,0,0,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999") == 0,
         "failed alignment csv sentinel row");
+}
+
+void testTaskAlignmentOffsetsUseTaskBasisToTemplateBasis()
+{
+    hm::TaskAlignmentBasis basis;
+    basis.taskCenterWorldX = 100.0;
+    basis.taskCenterWorldY = 200.0;
+    basis.taskAngleRad = 0.5235987755982988;
+    basis.templateCenterWorldX = 0.0;
+    basis.templateCenterWorldY = 0.0;
+    basis.templateAngleRad = 0.0;
+
+    hm::HoleMeasurement measurement;
+    measurement.ok = true;
+    measurement.templateWorldX = 10.0;
+    measurement.templateWorldY = 0.0;
+    measurement.measuredWorldX = 111.89230484541326;
+    measurement.measuredWorldY = 203.40192378864668;
+
+    hm::HoleMeasurement failed;
+    failed.ok = false;
+    failed.templateWorldX = 10.0;
+    failed.templateWorldY = 0.0;
+
+    std::vector<hm::HoleMeasurement> transformed;
+    transformed.push_back(measurement);
+    transformed.push_back(failed);
+
+    hm::applyTaskAlignmentOffsets(transformed, basis);
+
+    require(nearlyEqual(transformed[0].taskAlignedWorldX, 12.0), "task aligned x should map through task basis");
+    require(nearlyEqual(transformed[0].taskAlignedWorldY, -3.0), "task aligned y should map through task basis");
+    require(nearlyEqual(transformed[0].taskDeltaX, 2.0), "task delta x should compare transformed x to template x");
+    require(nearlyEqual(transformed[0].taskDeltaY, 3.0), "task delta y should follow pattern TP y sign");
+    require(nearlyEqual(transformed[1].taskAlignedWorldX, hm::InvalidMeasurementValue),
+        "failed task aligned x sentinel");
+    require(nearlyEqual(transformed[1].taskDeltaX, hm::InvalidMeasurementValue),
+        "failed task delta x sentinel");
 }
 
 void testMeasurementAveragesMutualPerpendicularDistances()
@@ -636,6 +674,8 @@ void testAppParamsSaveLoad()
     params.micronPerPixel = 2.75;
     params.pointOrder = hm::ExportOrder::RowFirstBottomRight;
     params.lineFindMethod = hm::LineFindMethod::LineDetector;
+    params.taskPath = "D:/tasks/chip_align.task";
+    params.ibPath = "D:/IBService";
     params.gauge.edgeOffsetPx = 31.0;
     params.gauge.roiLengthPx = 42.0;
     params.gauge.roiWidthPx = 53.0;
@@ -667,6 +707,8 @@ void testAppParamsSaveLoad()
     require(nearlyEqual(loaded.micronPerPixel, 2.75), "app params micron scale");
     require(loaded.pointOrder == hm::ExportOrder::RowFirstBottomRight, "app params point order");
     require(loaded.lineFindMethod == hm::LineFindMethod::LineDetector, "app params line find method");
+    require(loaded.taskPath == "D:/tasks/chip_align.task", "app params task path");
+    require(loaded.ibPath == "D:/IBService", "app params ib path");
     require(nearlyEqual(loaded.gauge.edgeOffsetPx, 31.0), "app params edge offset");
     require(nearlyEqual(loaded.gauge.roiLengthPx, 42.0), "app params roi length");
     require(nearlyEqual(loaded.gauge.roiWidthPx, 53.0), "app params roi width");
@@ -936,6 +978,7 @@ int main()
     testRoiGroupBoundsContainsRotatedRois();
     testMeasurementAndSave();
     testAlignmentCsvFieldsAndFailureSentinel();
+    testTaskAlignmentOffsetsUseTaskBasisToTemplateBasis();
     testMeasurementAveragesMutualPerpendicularDistances();
     testRoiMeasurementFailureStateFollowsSingleFailedLine();
     testGaugeLineKeepsDetectedSegment();

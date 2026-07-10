@@ -11,6 +11,7 @@
 #include "LPVGauge.h"
 #include "LPVGeom.h"
 #include "LPVLocate.h"
+#include "LPVIB.h"
 #include "LPVDisplayControl.h"
 
 #include <map>
@@ -26,6 +27,7 @@ class QCheckBox;
 class QComboBox;
 class QPushButton;
 class QLineEdit;
+class QToolButton;
 
 class QtHoleMeasureWidget : public QWidget
 {
@@ -54,6 +56,7 @@ private slots:
     void selectedProfileGroupChanged();
     void columnProfileItemChanged(QTableWidgetItem* item);
     void searchHoleById();
+    void loadTask();
     void displayRegionDragFinished(int regionId);
 
 private:
@@ -96,6 +99,7 @@ private:
     hm::GaugeLine detectLineByGauge(const hm::HoleRoi& roi, const LPVGeomLib::ILRotRectRegionPtr& region);
     hm::GaugeLine detectLineByDetector(const hm::HoleRoi& roi, const LPVGeomLib::ILRotRectRegionPtr& region);
     bool applyTemplateAlignmentWithLpv();
+    bool applyTaskAlignmentWithTask();
     void updateMeasurementTable();
     QString filesDir() const;
     QString roiConfigPath() const;
@@ -128,11 +132,19 @@ private:
     std::vector<hm::HoleRoi> collectRois() const;
     void applyLoadedRois(const std::vector<hm::HoleRoi>& rois);
     void clearMeasurements();
+    bool taskAlignmentConfigured() const;
+    bool ensureTaskLoaded();
+    bool runTaskAlignment(hm::TaskAlignmentBasis& basis);
+    void invalidateTaskAlignmentResults();
+    LPVGeomLib::ILPolygonPtr makeTaskDetectionPolygon() const;
+    hm::ImagePoint templateWorldCenter() const;
 
     LPVDisplayWidget* m_display = nullptr;
     QTableWidget* m_holeTable = nullptr;
     QTableWidget* m_roiTable = nullptr;
     QTableWidget* m_resultTable = nullptr;
+    QToolButton* m_controlsToggle = nullptr;
+    QWidget* m_controlsBody = nullptr;
     QLabel* m_status = nullptr;
     QDoubleSpinBox* m_dx = nullptr;
     QDoubleSpinBox* m_dy = nullptr;
@@ -151,6 +163,8 @@ private:
     QComboBox* m_startCorner = nullptr;
     QComboBox* m_lineFindMethod = nullptr;
     QLineEdit* m_searchId = nullptr;
+    QLineEdit* m_taskPath = nullptr;
+    QLineEdit* m_ibPath = nullptr;
     QTableWidget* m_columnProfileTable = nullptr;
     QTableWidget* m_profileList = nullptr;
 
@@ -159,6 +173,7 @@ private:
     LPVCalibLib::ILCalibPtr m_calib;
     LPVGaugeLib::ILLineGaugePtr m_lineGauge;
     LPVLocateLib::ILLineDetectorPtr m_lineDetector;
+    LPVIBLib::ILIBServicePtr m_ibService;
     ILDisplayPtr m_displayCtrl;
 
     std::vector<hm::TemplatePoint> m_templatePoints;
@@ -169,7 +184,13 @@ private:
     std::vector<hm::HoleMeasurement> m_measurements;
     QString m_defaultDataDir = "D:/files";
     QString m_dataDir = "D:/files";
+    QString m_loadedTaskPath;
+    QString m_loadedIbPath;
     bool m_displayImageSet = false;
+    bool m_lastTaskLocated = false;
+    hm::ImagePoint m_lastTaskPixelCenter;
+    double m_lastTaskAngleRad = 0.0;
+    int m_taskId = -1;
 
     double m_viewScale = 1.0;
     double m_viewPanX = 0.0;

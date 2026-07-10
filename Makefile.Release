@@ -14,10 +14,10 @@ CXX           = cl
 DEFINES       = -DUNICODE -D_UNICODE -DWIN32 -DWIN64 -DQT_NO_DEBUG -DQT_AXCONTAINER_LIB -DQT_AXBASE_LIB -DQT_WIDGETS_LIB -DQT_WINEXTRAS_LIB -DQT_GUI_LIB -DQT_CORE_LIB -DNDEBUG
 CFLAGS        = -nologo -Zc:wchar_t -FS -Zc:strictStrings -O2 -MD -W3 -w44456 -w44457 -w44458 $(DEFINES)
 CXXFLAGS      = -nologo -Zc:wchar_t -FS -Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -O2 -MD -W3 -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 -wd4577 -wd4467 -EHsc $(DEFINES)
-INCPATH       = -I. -IF:\Source\StoneWall\idl\GeneratedFiles -IF:\Source\StoneWall\publish\include -IF:\Source\StoneWall\include\capi -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\ActiveQt -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtWidgets -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtWinExtras -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtGui -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtANGLE -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtCore -Irelease -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\mkspecs\win32-msvc 
+INCPATH       = -I. -I..\..\StoneWall\idl\GeneratedFiles -I..\..\StoneWall\publish\include -I..\..\StoneWall\include\capi -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\ActiveQt -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtWidgets -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtWinExtras -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtGui -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtANGLE -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtCore -Irelease -IC:\Qt\Qt5.9.4\5.9.4\msvc2017_64\mkspecs\win32-msvc 
 LINKER        = link
 LFLAGS        = /NOLOGO /DYNAMICBASE /NXCOMPAT /INCREMENTAL:NO /SUBSYSTEM:WINDOWS "/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'"
-LIBS          = /LIBPATH:C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\qtmain.lib /LIBPATH:C:\utils\my_sql\my_sql\lib /LIBPATH:C:\utils\postgresql\pgsql\lib shell32.lib /LIBPATH:C:\Users\22113\Desktop\files\QtHoleMeasure\lib\x64 /LIBPATH:F:\Source\StoneWall\publish\lib\x64 C:\Users\22113\Desktop\files\QtHoleMeasure\lib\x64\lpvCore.lib C:\Users\22113\Desktop\files\QtHoleMeasure\lib\x64\lpvGeom.lib C:\Users\22113\Desktop\files\QtHoleMeasure\lib\x64\lpvCalib.lib C:\Users\22113\Desktop\files\QtHoleMeasure\lib\x64\lpvGauge.lib C:\Users\22113\Desktop\files\QtHoleMeasure\lib\x64\lpvLocate.lib F:\Source\StoneWall\publish\lib\x64\lpvDisplay.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5AxContainer.lib /LIBPATH:C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5AxBase.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5Widgets.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5Gui.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5Core.lib ole32.lib oleaut32.lib user32.lib gdi32.lib advapi32.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5Widgets.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5WinExtras.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5Gui.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5Core.lib 
+LIBS          = /LIBPATH:C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\qtmain.lib /LIBPATH:C:\utils\my_sql\my_sql\lib /LIBPATH:C:\utils\postgresql\pgsql\lib shell32.lib /LIBPATH:F:\Source\TestProjects\QtHoleMeasure\lib\x64 /LIBPATH:F:\Source\StoneWall\publish\lib\x64 F:\Source\StoneWall\publish\lib\x64\lpvCore.lib F:\Source\StoneWall\publish\lib\x64\lpvGeom.lib F:\Source\StoneWall\publish\lib\x64\lpvCalib.lib F:\Source\StoneWall\publish\lib\x64\lpvGauge.lib F:\Source\StoneWall\publish\lib\x64\lpvLocate.lib F:\Source\StoneWall\publish\lib\x64\lpvDisplay.lib F:\Source\StoneWall\publish\lib\x64\lpvIB.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5AxContainer.lib /LIBPATH:C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5AxBase.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5Widgets.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5Gui.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5Core.lib ole32.lib oleaut32.lib user32.lib gdi32.lib advapi32.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5Widgets.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5WinExtras.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5Gui.lib C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5Core.lib 
 QMAKE         = C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\bin\qmake.exe
 IDC           = idc
 IDL           = midl /NOLOGO
@@ -141,11 +141,11 @@ $(DESTDIR_TARGET): C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\lib\Qt5AxContainer.lib C:\Qt\
 release\main.obj release\HoleMeasureCore.obj release\LPVDisplayWidget.obj release\QtHoleMeasureWidget.obj release\moc_QtHoleMeasureWidget.obj
 $(LIBS)
 <<
-	xcopy /Y /D C:\Users\22113\Desktop\files\QtHoleMeasure\release\*.dll C:\Users\22113\Desktop\files\QtHoleMeasure\release 
+	xcopy /Y /D F:\Source\TestProjects\QtHoleMeasure\release\*.dll F:\Source\TestProjects\QtHoleMeasure\release 
 	
 
 qmake: FORCE
-	@$(QMAKE) -o Makefile.Release QtHoleMeasure.pro "CONFIG+=release" "CONFIG-=debug"
+	@$(QMAKE) -o Makefile.Release QtHoleMeasure.pro
 
 qmake_all: FORCE
 
@@ -289,28 +289,30 @@ release\moc_QtHoleMeasureWidget.cpp: src\HoleMeasureCore.h \
 		C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtGui\qvector2d.h \
 		C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtGui\qtouchdevice.h \
 		C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtCore\QVector \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCore.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCore_c.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCommon_c.h \
-		F:\Source\StoneWall\publish\include\LPVCode.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVArray.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVHelper.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCommon.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVVersion.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCalib.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVGeom.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVGeom_c.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCalib_c.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVGauge.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVGauge_c.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVLocate.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVLocate_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCore.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCore_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCommon_c.h \
+		..\..\StoneWall\publish\include\LPVCode.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVArray.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVHelper.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCommon.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVVersion.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCalib.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVGeom.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVGeom_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCalib_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVGauge.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVGauge_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVLocate.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVLocate_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVIB.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVIB_c.h \
 		src\LPVDisplayControl.h \
 		F:\Source\StoneWall\publish\bin\x64\lpvDisplay.dll \
 		src\QtHoleMeasureWidget.h \
 		release\moc_predefs.h \
 		C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\bin\moc.exe
-	C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\bin\moc.exe $(DEFINES) --compiler-flavor=msvc --include release/moc_predefs.h -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/mkspecs/win32-msvc -IC:/Users/22113/Desktop/files/QtHoleMeasure -IF:/Source/StoneWall/idl/GeneratedFiles -IF:/Source/StoneWall/publish/include -IF:/Source/StoneWall/include/capi -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/include -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/include/ActiveQt -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/include/QtWidgets -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/include/QtWinExtras -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/include/QtGui -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/include/QtANGLE -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/include/QtCore -I"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\ATLMFC\include" -I"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\include" -I"C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\include\um" -I"C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt" -I"C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\shared" -I"C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\um" -I"C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\winrt" -I"C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\cppwinrt" src\QtHoleMeasureWidget.h -o release\moc_QtHoleMeasureWidget.cpp
+	C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\bin\moc.exe $(DEFINES) --compiler-flavor=msvc --include release/moc_predefs.h -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/mkspecs/win32-msvc -IF:/Source/TestProjects/QtHoleMeasure -IF:/Source/StoneWall/idl/GeneratedFiles -IF:/Source/StoneWall/publish/include -IF:/Source/StoneWall/include/capi -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/include -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/include/ActiveQt -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/include/QtWidgets -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/include/QtWinExtras -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/include/QtGui -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/include/QtANGLE -IC:/Qt/Qt5.9.4/5.9.4/msvc2017_64/include/QtCore -I"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\ATLMFC\include" -I"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\include" -I"C:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\include\um" -I"C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\ucrt" -I"C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\shared" -I"C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\um" -I"C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\winrt" -I"C:\Program Files (x86)\Windows Kits\10\include\10.0.26100.0\cppwinrt" src\QtHoleMeasureWidget.h -o release\moc_QtHoleMeasureWidget.cpp
 
 compiler_dumpcpp_impl_make_all:
 compiler_dumpcpp_impl_clean:
@@ -434,22 +436,24 @@ release\main.obj: src\main.cpp src/QtHoleMeasureWidget.h \
 		C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtGui\qvector2d.h \
 		C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtGui\qtouchdevice.h \
 		C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtCore\QVector \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCore.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCore_c.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCommon_c.h \
-		F:\Source\StoneWall\publish\include\LPVCode.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVArray.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVHelper.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCommon.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVVersion.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCalib.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVGeom.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVGeom_c.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCalib_c.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVGauge.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVGauge_c.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVLocate.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVLocate_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCore.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCore_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCommon_c.h \
+		..\..\StoneWall\publish\include\LPVCode.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVArray.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVHelper.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCommon.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVVersion.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCalib.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVGeom.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVGeom_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCalib_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVGauge.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVGauge_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVLocate.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVLocate_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVIB.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVIB_c.h \
 		src\LPVDisplayControl.h \
 		F:\\Source\\StoneWall\\publish\\bin\\x64\\lpvDisplay.dll \
 		C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtWidgets\QApplication \
@@ -680,22 +684,24 @@ release\QtHoleMeasureWidget.obj: src\QtHoleMeasureWidget.cpp src/QtHoleMeasureWi
 		C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtGui\qvector2d.h \
 		C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtGui\qtouchdevice.h \
 		C:\Qt\Qt5.9.4\5.9.4\msvc2017_64\include\QtCore\QVector \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCore.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCore_c.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCommon_c.h \
-		F:\Source\StoneWall\publish\include\LPVCode.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVArray.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVHelper.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCommon.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVVersion.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCalib.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVGeom.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVGeom_c.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVCalib_c.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVGauge.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVGauge_c.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVLocate.h \
-		F:\Source\StoneWall\idl\GeneratedFiles\LPVLocate_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCore.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCore_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCommon_c.h \
+		..\..\StoneWall\publish\include\LPVCode.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVArray.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVHelper.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCommon.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVVersion.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCalib.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVGeom.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVGeom_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVCalib_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVGauge.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVGauge_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVLocate.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVLocate_c.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVIB.h \
+		..\..\StoneWall\idl\GeneratedFiles\LPVIB_c.h \
 		src\LPVDisplayControl.h \
 		F:\\Source\\StoneWall\\publish\\bin\\x64\\lpvDisplay.dll \
 		src/LPVDisplayWidget.h \

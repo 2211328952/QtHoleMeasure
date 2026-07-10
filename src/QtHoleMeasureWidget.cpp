@@ -19,6 +19,7 @@
 #include <QStringList>
 #include <QTableWidget>
 #include <QTableWidgetItem>
+#include <QToolButton>
 #include <QWheelEvent>
 #include <QFileInfo>
 #include <QDir>
@@ -35,10 +36,15 @@ using namespace LPVCoreLib;
 using namespace LPVCalibLib;
 using namespace LPVGaugeLib;
 using namespace LPVGeomLib;
+using namespace LPVIBLib;
 using namespace LPVLocateLib;
 
 namespace
 {
+const wchar_t* kTaskInputProxyName = L"\u8F93\u5165\u53C2\u6570\u4EE3\u7406";
+const wchar_t* kTaskOutputProxyName = L"\u8F93\u51FA\u53C2\u6570\u4EE3\u7406";
+const wchar_t* kTaskDetectRegionName = L"\u68C0\u6D4B\u533A\u57DF";
+
 QString qstr(double value, int precision = 2)
 {
     return QString::number(value, 'f', precision);
@@ -104,6 +110,10 @@ void invalidateAlignment(hm::HoleMeasurement& measurement)
     measurement.alignedWorldY = hm::InvalidMeasurementValue;
     measurement.deltaX = hm::InvalidMeasurementValue;
     measurement.deltaY = hm::InvalidMeasurementValue;
+    measurement.taskAlignedWorldX = hm::InvalidMeasurementValue;
+    measurement.taskAlignedWorldY = hm::InvalidMeasurementValue;
+    measurement.taskDeltaX = hm::InvalidMeasurementValue;
+    measurement.taskDeltaY = hm::InvalidMeasurementValue;
 }
 
 QSpinBox* intSpin(int min, int max, int value)
@@ -292,6 +302,7 @@ void QtHoleMeasureWidget::buildUi()
     auto* saveRoiButton = new QPushButton("Save ROI");
     auto* loadRoiButton = new QPushButton("Load ROI");
     auto* searchButton = new QPushButton("Search");
+    auto* loadTaskButton = new QPushButton("Load Task");
 
     connect(loadButton, &QPushButton::clicked, this, &QtHoleMeasureWidget::loadDefaults);
     connect(rebuildButton, &QPushButton::clicked, this, &QtHoleMeasureWidget::rebuildArray);
@@ -301,6 +312,7 @@ void QtHoleMeasureWidget::buildUi()
     connect(saveRoiButton, &QPushButton::clicked, this, &QtHoleMeasureWidget::saveRoiConfig);
     connect(loadRoiButton, &QPushButton::clicked, this, &QtHoleMeasureWidget::loadRoiConfig);
     connect(searchButton, &QPushButton::clicked, this, &QtHoleMeasureWidget::searchHoleById);
+    connect(loadTaskButton, &QPushButton::clicked, this, &QtHoleMeasureWidget::loadTask);
 
     m_dx = doubleSpin(-20000, 20000, -2628.00);
     m_dy = doubleSpin(-20000, 20000, 221.00);
@@ -312,6 +324,10 @@ void QtHoleMeasureWidget::buildUi()
     m_searchId = new QLineEdit;
     m_searchId->setPlaceholderText("ID");
     connect(m_searchId, &QLineEdit::returnPressed, this, &QtHoleMeasureWidget::searchHoleById);
+    m_taskPath = new QLineEdit;
+    m_taskPath->setPlaceholderText("Task path");
+    m_ibPath = new QLineEdit;
+    m_ibPath->setPlaceholderText("IB service path");
 
     m_edgeOffset = doubleSpin(1, 500, 30);
     m_roiLength = doubleSpin(1, 800, 38);
@@ -368,14 +384,39 @@ void QtHoleMeasureWidget::buildUi()
     connect(m_columnProfileTable, &QTableWidget::itemChanged, this, &QtHoleMeasureWidget::columnProfileItemChanged);
     connect(m_columnProfileTable, &QTableWidget::itemSelectionChanged, this, &QtHoleMeasureWidget::displayImage);
 
-    auto* controls = new QGroupBox("Controls");
-    auto* form = new QFormLayout(controls);
+    auto* controls = new QGroupBox;
+    auto* controlsLayout = new QVBoxLayout(controls);
+    controlsLayout->setContentsMargins(6, 6, 6, 6);
+    controlsLayout->setSpacing(4);
+
+    auto* controlsHeader = new QWidget(controls);
+    auto* controlsHeaderLayout = new QHBoxLayout(controlsHeader);
+    controlsHeaderLayout->setContentsMargins(0, 0, 0, 0);
+    controlsHeaderLayout->setSpacing(4);
+
+    m_controlsToggle = new QToolButton(controlsHeader);
+    m_controlsToggle->setAutoRaise(true);
+    m_controlsToggle->setCheckable(true);
+    m_controlsToggle->setChecked(true);
+    m_controlsToggle->setArrowType(Qt::DownArrow);
+    m_controlsToggle->setFixedSize(18, 18);
+
+    auto* controlsTitle = new QLabel("Controls", controlsHeader);
+    controlsHeaderLayout->addWidget(m_controlsToggle);
+    controlsHeaderLayout->addWidget(controlsTitle);
+    controlsHeaderLayout->addStretch();
+
+    m_controlsBody = new QWidget(controls);
+    auto* form = new QFormLayout(m_controlsBody);
     form->addRow(loadButton, rebuildButton);
     form->addRow(measureButton, saveButton);
     form->addRow(saveParamsButton);
     form->addRow(loadRoiButton, saveRoiButton);
     form->addRow("Search ID", m_searchId);
     form->addRow(searchButton);
+    form->addRow("Task Path", m_taskPath);
+    form->addRow("IB Path", m_ibPath);
+    form->addRow(loadTaskButton);
     form->addRow("Offset X", m_dx);
     form->addRow("Offset Y", m_dy);
     form->addRow("Angle", m_angle);
@@ -391,6 +432,17 @@ void QtHoleMeasureWidget::buildUi()
     form->addRow("Order major", m_orderMajor);
     form->addRow("Start corner", m_startCorner);
     form->addRow("Line find", m_lineFindMethod);
+
+    controlsLayout->addWidget(controlsHeader);
+    controlsLayout->addWidget(m_controlsBody);
+    connect(m_controlsToggle, &QToolButton::toggled, this, [this](bool expanded) {
+        if (m_controlsBody) {
+            m_controlsBody->setVisible(expanded);
+        }
+        if (m_controlsToggle) {
+            m_controlsToggle->setArrowType(expanded ? Qt::DownArrow : Qt::RightArrow);
+        }
+    });
 
     m_holeTable = new QTableWidget(0, 6, this);
     m_holeTable->setHorizontalHeaderLabels(QStringList() << "ID" << "Row" << "Col" << "Profile" << "X" << "Y");
@@ -1039,6 +1091,8 @@ hm::AppParams QtHoleMeasureWidget::readAppParams() const
     params.lineFindMethod = m_lineFindMethod->currentIndex() == 1
         ? hm::LineFindMethod::LineDetector
         : hm::LineFindMethod::LineGauge;
+    params.taskPath = m_taskPath->text().trimmed().toStdString();
+    params.ibPath = m_ibPath->text().trimmed().toStdString();
     params.gauge = defaults;
     params.roiProfiles.clear();
     for (const auto& profile : m_roiProfiles) {
@@ -1065,6 +1119,8 @@ void QtHoleMeasureWidget::applyAppParams(const hm::AppParams& params)
     const QSignalBlocker orderMajorBlocker(m_orderMajor);
     const QSignalBlocker startCornerBlocker(m_startCorner);
     const QSignalBlocker lineFindBlocker(m_lineFindMethod);
+    const QSignalBlocker taskPathBlocker(m_taskPath);
+    const QSignalBlocker ibPathBlocker(m_ibPath);
 
     m_dx->setValue(params.offsetX);
     m_dy->setValue(params.offsetY);
@@ -1081,6 +1137,8 @@ void QtHoleMeasureWidget::applyAppParams(const hm::AppParams& params)
     m_orderMajor->setCurrentIndex(orderMajorIndex(params.pointOrder));
     m_startCorner->setCurrentIndex(startCornerIndex(params.pointOrder));
     m_lineFindMethod->setCurrentIndex(params.lineFindMethod == hm::LineFindMethod::LineDetector ? 1 : 0);
+    m_taskPath->setText(QString::fromStdString(params.taskPath));
+    m_ibPath->setText(QString::fromStdString(params.ibPath));
     if (!params.roiProfiles.empty()) {
         if (m_roiProfiles.size() < params.roiProfiles.size()) {
             m_roiProfiles.resize(params.roiProfiles.size());
@@ -1687,6 +1745,241 @@ hm::GaugeLine QtHoleMeasureWidget::detectLineByDetector(const hm::HoleRoi& roi, 
     return hm::selectLineCandidate(candidates, roi, 10.0);
 }
 
+bool QtHoleMeasureWidget::taskAlignmentConfigured() const
+{
+    return m_taskPath && m_ibPath
+        && !m_taskPath->text().trimmed().isEmpty()
+        && !m_ibPath->text().trimmed().isEmpty();
+}
+
+void QtHoleMeasureWidget::loadTask()
+{
+    if (ensureTaskLoaded()) {
+        log("Loaded task: " + m_loadedTaskPath);
+    } else {
+        log("Task load failed.");
+    }
+}
+
+bool QtHoleMeasureWidget::ensureTaskLoaded()
+{
+    if (!taskAlignmentConfigured()) {
+        return false;
+    }
+
+    const QString taskPath = m_taskPath->text().trimmed();
+    const QString ibPath = m_ibPath->text().trimmed();
+    if (m_ibService && m_taskId >= 0 && taskPath == m_loadedTaskPath && ibPath == m_loadedIbPath) {
+        return true;
+    }
+
+    try {
+        if (m_ibService && m_taskId >= 0) {
+            m_ibService->UnloadTask(m_taskId);
+        }
+        if (m_ibService && ibPath != m_loadedIbPath) {
+            m_ibService->TearDown();
+        }
+
+        m_taskId = -1;
+        m_loadedTaskPath.clear();
+        m_loadedIbPath.clear();
+        m_ibService = LIBService::Create();
+        if (!m_ibService) {
+            return false;
+        }
+
+        m_ibService->SetUp(ibPath.toStdWString());
+        if (!m_ibService->IsReady()) {
+            return false;
+        }
+
+        int taskId = -1;
+        const int errCode = m_ibService->LoadTask(taskPath.toStdWString(), &taskId);
+        if (errCode != LPVNoError || taskId < 0) {
+            return false;
+        }
+
+        m_taskId = taskId;
+        m_loadedTaskPath = taskPath;
+        m_loadedIbPath = ibPath;
+    }
+    catch (...) {
+        m_taskId = -1;
+        m_loadedTaskPath.clear();
+        m_loadedIbPath.clear();
+        return false;
+    }
+
+    return true;
+}
+
+ILPolygonPtr QtHoleMeasureWidget::makeTaskDetectionPolygon() const
+{
+    hm::ImageRect bounds;
+    std::vector<hm::HoleRoi> rois;
+    for (const auto& hole : m_holes) {
+        rois.insert(rois.end(), hole.rois.begin(), hole.rois.end());
+    }
+    bounds = hm::makeRoiGroupBounds(rois, 60.0);
+    if (!bounds.ok && m_fixedImage && m_fixedImage->Valid()) {
+        bounds.left = 0.0;
+        bounds.top = 0.0;
+        bounds.width = m_fixedImage->Width;
+        bounds.height = m_fixedImage->Height;
+        bounds.ok = true;
+    }
+    if (!bounds.ok) {
+        return nullptr;
+    }
+
+    ILPolygonPtr polygon = LPolygon::Create();
+    if (!polygon) {
+        return nullptr;
+    }
+
+    std::vector<double> xs;
+    std::vector<double> ys;
+    xs.push_back(bounds.left);
+    ys.push_back(bounds.top);
+    xs.push_back(bounds.left + bounds.width);
+    ys.push_back(bounds.top);
+    xs.push_back(bounds.left + bounds.width);
+    ys.push_back(bounds.top + bounds.height);
+    xs.push_back(bounds.left);
+    ys.push_back(bounds.top + bounds.height);
+    polygon->SetPolygon(xs, ys, true);
+    return polygon;
+}
+
+hm::ImagePoint QtHoleMeasureWidget::templateWorldCenter() const
+{
+    hm::ImagePoint center;
+    if (m_templatePoints.empty()) {
+        return center;
+    }
+
+    double minX = m_templatePoints.front().worldX;
+    double maxX = m_templatePoints.front().worldX;
+    double minY = m_templatePoints.front().worldY;
+    double maxY = m_templatePoints.front().worldY;
+    for (const auto& point : m_templatePoints) {
+        if (point.worldX < minX) minX = point.worldX;
+        if (point.worldX > maxX) maxX = point.worldX;
+        if (point.worldY < minY) minY = point.worldY;
+        if (point.worldY > maxY) maxY = point.worldY;
+    }
+
+    center.x = (minX + maxX) * 0.5;
+    center.y = (minY + maxY) * 0.5;
+    return center;
+}
+
+void QtHoleMeasureWidget::invalidateTaskAlignmentResults()
+{
+    for (auto& measurement : m_measurements) {
+        measurement.taskAlignedWorldX = hm::InvalidMeasurementValue;
+        measurement.taskAlignedWorldY = hm::InvalidMeasurementValue;
+        measurement.taskDeltaX = hm::InvalidMeasurementValue;
+        measurement.taskDeltaY = hm::InvalidMeasurementValue;
+    }
+    m_lastTaskLocated = false;
+}
+
+bool QtHoleMeasureWidget::runTaskAlignment(hm::TaskAlignmentBasis& basis)
+{
+    if (!m_fixedImage || !m_fixedImage->Valid() || !m_calib || !m_calib->IsCalibrated()) {
+        return false;
+    }
+    if (!ensureTaskLoaded()) {
+        return false;
+    }
+
+    try {
+        ILPolygonPtr detectPolygon = makeTaskDetectionPolygon();
+        if (!detectPolygon) {
+            return false;
+        }
+
+        ILIBAlgoConfigPtr config = m_ibService->GetAlgoConfig(m_taskId, kTaskInputProxyName);
+        if (!config) {
+            return false;
+        }
+        ILIBDataPtr detectRegion = LIBData::Create();
+        if (!detectRegion) {
+            return false;
+        }
+        detectRegion->FromPolygon(detectPolygon);
+        config->PutConfig(kTaskDetectRegionName, detectRegion);
+        const int configErr = m_ibService->SetAlgoConfig(m_taskId, kTaskInputProxyName, config);
+        if (configErr != LPVNoError) {
+            return false;
+        }
+
+        ILIBTaskResultPtr taskResult;
+        const int executeErr = m_ibService->ExecuteTaskSync(m_taskId, m_fixedImage, &taskResult);
+        if (executeErr != LPVNoError || !taskResult) {
+            return false;
+        }
+
+        ILIBAlgoResultPtr algoResult = taskResult->GetAlgoResult(kTaskOutputProxyName);
+        if (!algoResult) {
+            return false;
+        }
+
+        ILIBDataPtr centerData = algoResult->GetResult(L"ChipCenter");
+        ILIBDataPtr angleData = algoResult->GetResult(L"ChipAngle");
+        if (!centerData || !angleData) {
+            return false;
+        }
+
+        ILPointPtr centerPoint = centerData->ToPoint();
+        if (!centerPoint) {
+            return false;
+        }
+
+        const double pixelX = centerPoint->GetX();
+        const double pixelY = centerPoint->GetY();
+        double worldX = 0.0;
+        double worldY = 0.0;
+        m_calib->ImageToWorld(pixelX, pixelY, &worldX, &worldY);
+
+        const hm::ImagePoint templateCenter = templateWorldCenter();
+        basis.taskCenterWorldX = worldX;
+        basis.taskCenterWorldY = worldY;
+        basis.taskAngleRad = angleData->ToDouble();
+        basis.templateCenterWorldX = templateCenter.x;
+        basis.templateCenterWorldY = templateCenter.y;
+        basis.templateAngleRad = 0.0;
+
+        m_lastTaskLocated = true;
+        m_lastTaskPixelCenter = hm::ImagePoint{ pixelX, pixelY };
+        m_lastTaskAngleRad = basis.taskAngleRad;
+    }
+    catch (...) {
+        return false;
+    }
+
+    return true;
+}
+
+bool QtHoleMeasureWidget::applyTaskAlignmentWithTask()
+{
+    if (!taskAlignmentConfigured()) {
+        invalidateTaskAlignmentResults();
+        return false;
+    }
+
+    hm::TaskAlignmentBasis basis;
+    if (!runTaskAlignment(basis)) {
+        invalidateTaskAlignmentResults();
+        return false;
+    }
+
+    hm::applyTaskAlignmentOffsets(m_measurements, basis);
+    return true;
+}
+
 bool QtHoleMeasureWidget::applyTemplateAlignmentWithLpv()
 {
     std::vector<int> validIndexes;
@@ -1790,6 +2083,7 @@ void QtHoleMeasureWidget::measureAll()
         m_measurements.push_back(hole.measurement);
     }
     const bool alignmentOk = applyTemplateAlignmentWithLpv();
+    const bool taskAlignmentOk = applyTaskAlignmentWithTask();
     for (int i = 0; i < static_cast<int>(m_measurements.size()) && i < static_cast<int>(m_holes.size()); ++i) {
         m_holes[i].measurement = m_measurements[i];
     }
@@ -1800,6 +2094,9 @@ void QtHoleMeasureWidget::measureAll()
         .arg(std::count_if(m_measurements.begin(), m_measurements.end(), [](const hm::HoleMeasurement& m) { return m.ok; })));
     if (!alignmentOk) {
         log("Template alignment failed. Alignment and delta values are set to -9999.");
+    }
+    if (taskAlignmentConfigured() && !taskAlignmentOk) {
+        log("Task alignment failed. Task alignment and task delta values are set to -9999.");
     }
 }
 
@@ -2061,6 +2358,24 @@ void QtHoleMeasureWidget::displayImage()
                 m_displayCtrl->AddObject(*centerLine, 0);
             }
         }
+    }
+
+    if (m_lastTaskLocated) {
+        const auto taskCenterLines = hm::makeCenterCrossLines(m_lastTaskPixelCenter, 12.0);
+        for (const auto& line : taskCenterLines) {
+            ILLinePtr centerLine = LLine::Create();
+            centerLine->Set(line.start.x, line.start.y, line.end.x, line.end.y);
+            ILDrawable::Cast(centerLine)->SetPen(LPVPenSolid, 3, LPVYellow);
+            m_displayCtrl->AddObject(*centerLine, 0);
+        }
+
+        ILLinePtr axisLine = LLine::Create();
+        axisLine->Set(m_lastTaskPixelCenter.x,
+            m_lastTaskPixelCenter.y,
+            m_lastTaskPixelCenter.x + std::cos(m_lastTaskAngleRad) * 45.0,
+            m_lastTaskPixelCenter.y + std::sin(m_lastTaskAngleRad) * 45.0);
+        ILDrawable::Cast(axisLine)->SetPen(LPVPenSolid, 3, LPVYellow);
+        m_displayCtrl->AddObject(*axisLine, 0);
     }
 
     std::vector<hm::TemplatePoint> labelPoints;

@@ -114,6 +114,8 @@ struct AppParams
     double micronPerPixel = 1.0;
     ExportOrder pointOrder = ExportOrder::FirstColumnTopDown;
     LineFindMethod lineFindMethod = LineFindMethod::LineGauge;
+    std::string taskPath;
+    std::string ibPath;
     GaugeDefaults gauge;
     std::vector<RoiProfileRange> roiProfiles;
     std::vector<RoiColumnProfile> columnProfiles;
@@ -166,6 +168,16 @@ struct GaugeLine
     ImagePoint end;
 };
 
+struct TaskAlignmentBasis
+{
+    double taskCenterWorldX = 0.0;
+    double taskCenterWorldY = 0.0;
+    double taskAngleRad = 0.0;
+    double templateCenterWorldX = 0.0;
+    double templateCenterWorldY = 0.0;
+    double templateAngleRad = 0.0;
+};
+
 struct HoleMeasurement
 {
     int templateId = 0;
@@ -187,6 +199,10 @@ struct HoleMeasurement
     double alignedWorldY = InvalidMeasurementValue;
     double deltaX = InvalidMeasurementValue;
     double deltaY = InvalidMeasurementValue;
+    double taskAlignedWorldX = InvalidMeasurementValue;
+    double taskAlignedWorldY = InvalidMeasurementValue;
+    double taskDeltaX = InvalidMeasurementValue;
+    double taskDeltaY = InvalidMeasurementValue;
     bool ok = false;
     GaugeLine top;
     GaugeLine bottom;
@@ -238,6 +254,7 @@ HoleMeasurement makeMeasurement(const TemplatePoint& point, const ImagePoint& ce
     const GaugeLine& bottom, const GaugeLine& left, const GaugeLine& right, double micronPerPixel);
 bool isRoiMeasurementFailed(const HoleMeasurement& measurement, int roiIndex, bool measurementAvailable);
 std::vector<HoleMeasurement> applyMeasurementOffsets(const std::vector<HoleMeasurement>& measurements);
+void applyTaskAlignmentOffsets(std::vector<HoleMeasurement>& measurements, const TaskAlignmentBasis& basis);
 double lineAngleDifferenceDeg(double firstAngleDeg, double secondAngleDeg);
 double expectedLineAngleDeg(const HoleRoi& roi);
 int selectLineCandidateIndex(const std::vector<GaugeLine>& candidates, const HoleRoi& roi, double maxAngleDeg);
